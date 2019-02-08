@@ -1,0 +1,47 @@
+{
+  "name": "sb-api",
+  "version": "0.0.1",
+  "description": "JS client library for Suredbits APIs",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "repository": "git@github.com:Suredbits/sb-api.git",
+  "author": "Torkel Rogstad <torkel@suredbits.com>",
+  "license": "MIT",
+  "homepage": "https://suredbits.com/api",
+  "keywords": [
+    "lightning",
+    "bitcoin",
+    "btc",
+    "microdata",
+    "micropayments"
+  ],
+  "files": [
+    "lib/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
+    "lint": "tslint -p tsconfig.json",
+    "prepublishOnly": "yarn lint && yarn build",
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags"
+  },
+  "devDependencies": {
+    "@types/request-promise-native": "^1.0.15",
+    "@types/ws": "^6.0.1",
+    "prettier": "^1.16.4",
+    "tslint": "^5.12.1",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.3.3"
+  },
+  "dependencies": {
+    "@types/uuid": "^3.4.4",
+    "assert-never": "^1.1.0",
+    "io-ts": "^1.8.1",
+    "io-ts-types": "^0.4.2",
+    "request-promise-native": "^1.0.5",
+    "uuid": "^3.3.2",
+    "ws": "^6.1.3"
+  }
+}
