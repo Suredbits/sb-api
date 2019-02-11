@@ -1,7 +1,18 @@
 import * as t from 'io-ts'
+import { ExchangeChannel } from '../../sockets/crypto'
 import { ALL_EXCHANGE_BOOKS_TYPES, ExchangeBooksTypes } from './books'
 import { ALL_EXCHANGE_TICKER_TYPES, ExchangeTickersTypes } from './tickers'
 import { ALL_EXCHANGE_TRADES_TYPES, ExchangeTradesTypes } from './trades'
+
+export declare namespace ExchangeTypes {
+  export type Snapshot<C extends ExchangeChannel, E extends Exchange> = t.TypeOf<
+    typeof ExchangeTypes.DataTypes[C][E]['snapshot']
+  >
+
+  export type Data<C extends ExchangeChannel, E extends Exchange> = t.TypeOf<
+    typeof ExchangeTypes.DataTypes[C][E]['data']
+  >
+}
 
 export type Exchange = t.TypeOf<typeof ExchangeTypes.Exchange>
 

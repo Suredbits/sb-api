@@ -1,4 +1,3 @@
-import { API } from '.'
 import { BitcoinNetwork, LightningApi } from '../lightning'
 import {
   NbaGamesResponseType,
@@ -8,7 +7,9 @@ import {
   NbaTypes,
 } from '../types/nba'
 import { Omit } from '../types/util'
-import { OnWsOpen, PayPerCallSocket } from './common'
+import { API } from './common'
+import { OnWsOpen } from './common'
+import { PayPerCallSocket } from './paypercall'
 
 export class NbaSocket extends PayPerCallSocket {
   constructor(ln: LightningApi, onOpen: OnWsOpen) {
@@ -46,6 +47,10 @@ export class NbaSocket extends PayPerCallSocket {
 }
 
 export class NbaSocketTestnet extends PayPerCallSocket {
+  public constructor(ln: LightningApi, onOpen: OnWsOpen) {
+    super(API.NBA, ln, onOpen, BitcoinNetwork.testnet)
+  }
+
   public info = () =>
     this.sendRequest({ channel: 'info' }, (() => {
       throw new Error('todo')
@@ -55,7 +60,7 @@ export class NbaSocketTestnet extends PayPerCallSocket {
     return this.sendRequest({ ...args, channel: 'games' }, NbaTypes.GamesResponseType, 'NBA games testnet')
   }
 
-  public players = (args: TestnetArgs<NbaPlayersRequestArgs>): Promise<NbaPlayerResponseType> => {
+  public players = (args: TestnetArgs<NbaPlayersRequestArgs> = {}): Promise<NbaPlayerResponseType> => {
     return this.sendRequest(
       { ...args, channel: 'players', ...testnetVals },
       NbaTypes.PlayersResponseType,

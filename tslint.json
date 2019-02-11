@@ -4,6 +4,8 @@
     "object-literal-sort-keys": false,
     "interface-name": false,
     "member-ordering": false,
-    "max-classes-per-file": false
+    "max-classes-per-file": false,
+    "no-empty-interface": false,
+    "no-namespace": [true, "allow-declarations"]
   }
 }

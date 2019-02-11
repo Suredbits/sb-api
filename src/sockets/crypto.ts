@@ -1,17 +1,19 @@
+import makeDebug from 'debug'
 import * as t from 'io-ts'
 import genUuid from 'uuid'
 import WebSocket from 'ws'
 
-import { API } from '.'
 import { BitcoinNetwork, LightningApi } from '../lightning'
-import { Logger } from '../logging'
-import { MessageTypes, validateDataMessage, validateSnapshotMessage } from '../types'
+import { MessageTypes, Validate } from '../types'
 import { Exchange, ExchangeTypes } from '../types/exchange'
 import { ExchangeSymbols } from '../types/exchange/symbols'
 import { Omit } from '../types/util'
-import { OnWsOpen, SbWebSocket } from './common'
+import { API } from './common'
+import { AtleastUUID, OnWsOpen, SbWebSocket } from './common'
 
 export type ExchangeChannel = 'tickers' | 'trades' | 'books'
+
+const debug = makeDebug('socket:exchange')
 
 interface SubScribeArgs<C extends ExchangeChannel, E extends Exchange> {
   exchange: E
@@ -19,9 +21,9 @@ interface SubScribeArgs<C extends ExchangeChannel, E extends Exchange> {
   channel: C
   duration: number
   refundInvoice: string
-  onSnapshot: (snapshot: any) => any // TODO fix me
-  onData: (data: any) => any // TODO fix me
-  onSubscriptionEnded: (datapoint: any[]) => any // TODO fix me
+  onSnapshot: (snapshot: ExchangeTypes.Snapshot<C, E>) => any
+  onData: (data: ExchangeTypes.Data<C, E>) => any
+  onSubscriptionEnded?: (datapoint: Array<ExchangeTypes.Data<C, E>>) => any
 }
 
 interface Subscription {
@@ -29,47 +31,38 @@ interface Subscription {
   unsubscribe: () => Promise<any> // TODO fix me
 }
 
-export class ExchangeSocket extends SbWebSocket {
-  constructor(protected ln: LightningApi, onOpen: OnWsOpen) {
-    super(API.crypto, ln, onOpen, BitcoinNetwork.mainnet)
+abstract class ExchangeSocketBase extends SbWebSocket {
+  constructor(protected ln: LightningApi, network: BitcoinNetwork, onOpen: OnWsOpen) {
+    super(API.crypto, ln, onOpen, network)
   }
-
-  public tickers = <E extends Exchange>(args: Omit<SubScribeArgs<'tickers', E>, 'channel'>): Subscription =>
-    this.subscribe({ channel: 'tickers', ...args })
-
-  public books = <E extends Exchange>(args: Omit<SubScribeArgs<'books', E>, 'channel'>): Subscription =>
-    this.subscribe({ channel: 'tickers', ...args })
-
-  public trades = <E extends Exchange>(args: Omit<SubScribeArgs<'trades', E>, 'channel'>): Subscription =>
-    this.subscribe({ channel: 'tickers', ...args })
 
   private handleRefill = async (addedDuration: number, uuid: string): Promise<any> => {
     const msg = { uuid, addedDuration, event: 'refill' }
-    Logger.info(`Refilling subscription with UUID ${uuid}`)
-    Logger.debug('Sending %O', msg)
+    debug(`Refilling subscription with UUID ${uuid}`)
+    debug('Sending %O', msg)
     this.ws.send(JSON.stringify(msg))
   }
 
   private handleUnsubscribe = async (uuid: string): Promise<any> => {
     const msg = { uuid, event: 'unsubscribe' }
-    Logger.info(`Sending unsubscription request with UUID ${uuid}`)
-    Logger.debug('Sending %O', msg)
+    debug(`Sending unsubscription request with UUID ${uuid}`)
+    debug('Sending %O', msg)
     this.ws.send(JSON.stringify(msg))
   }
 
-  public handleMessage = async (uuid: string, parsed: AtleastUUID, wsData: WebSocket.Data) => {
-    Logger.debug('Received message in exchange socket %O', parsed)
+  protected handleMessage = async (uuid: string, parsed: AtleastUUID, wsData: WebSocket.Data) => {
+    debug('Received message in exchange socket %O', parsed)
     if (MessageTypes.isInvoice(parsed)) {
-      Logger.info(`Got invoice for request with UUID ${uuid}`)
+      debug(`Got invoice for request with UUID ${uuid}`)
 
       const paymentResult = await this.ln.send(parsed.invoice)
-      Logger.debug('Paid invoice: %O', paymentResult)
+      debug('Paid invoice: %O', paymentResult)
     } else if (MessageTypes.isPaymentReceived(parsed)) {
-      Logger.info(`Payment received for ${parsed.uuid}`)
+      debug(`Payment received for ${parsed.uuid}`)
     } else {
       const sub = this.subscriptions[uuid]
       if (!sub) {
-        Logger.error(
+        debug(
           'Got message with UUID for subscription not found in active subscriptions map! UUID: %s. Subscriptions map: %O',
           uuid,
           this.subscriptions
@@ -77,30 +70,32 @@ export class ExchangeSocket extends SbWebSocket {
       } else {
         if (MessageTypes.isSnapshot(parsed)) {
           const { snapshot } = parsed
-          Logger.info(`Received snapshot for ${uuid} with ${snapshot.length} elements`)
+          debug(`Received snapshot for ${uuid} with ${snapshot.length} elements`)
           const newSub: ActiveSubscription<t.Type<any>> = {
             ...sub,
             activated: true,
           }
           this.subscriptions[uuid] = newSub
-          const validated = validateSnapshotMessage(wsData, sub.snapshotType, this.onSnapshotValidationError)
+          const validated = Validate.snapshot(wsData, sub.snapshotType, this.onSnapshotValidationError)
           const { onSnapshot } = sub
           onSnapshot(validated.snapshot)
         } else if (MessageTypes.isExchangeDataResponse(parsed, sub.dataType)) {
           const { data } = parsed
-          Logger.debug(`Received data for ${uuid}`)
-          Logger.debug('Data: %O', data)
-          const validated = validateDataMessage(wsData, sub.dataType, this.onDataValidationError)
+          debug(`Received data for ${uuid}`)
+          debug('Data: %O', data)
+          const validated = Validate.data(wsData, sub.dataType, this.onDataValidationError)
           this.addDataPoint(uuid, validated.data)
           sub.datapoints = [...sub.datapoints]
           sub.onData(validated.data)
         } else if (MessageTypes.isTimeWarning(parsed)) {
-          Logger.info(`Received time warning message for ${uuid}, ${parsed.warnings.duration / 1000} seconds left`)
+          debug(`Received time warning message for ${uuid}, ${parsed.warnings.duration / 1000} seconds left`)
         } else if (MessageTypes.isUnubscribed(parsed)) {
-          Logger.info(`Subscription ${uuid} has ended`)
-          sub.onSubscriptionEnded(sub.datapoints)
+          debug(`Subscription ${uuid} has ended`)
+          if (sub.onSubscriptionEnded) {
+            sub.onSubscriptionEnded(sub.datapoints)
+          }
         } else {
-          Logger.error("Don't know what to do with message %O", parsed)
+          debug("Don't know what to do with message %O", parsed)
         }
       }
     }
@@ -109,20 +104,20 @@ export class ExchangeSocket extends SbWebSocket {
   private addDataPoint = (uuid: string, data: object): void => {
     const sub = this.subscriptions[uuid]
     if (!sub) {
-      Logger.error(`Trying to add datapoint to sub ${uuid}, couldn't find sub`)
+      debug(`Trying to add datapoint to sub ${uuid}, couldn't find sub`)
       return
     }
     sub.datapoints = [...sub.datapoints, data as any]
-    Logger.debug(`Added datapoint to sub ${uuid}`)
+    debug(`Added datapoint to sub ${uuid}`)
   }
 
   private onSnapshotValidationError = (err: any) => {
-    Logger.error('Error happened while validating snapshot! %O', err)
+    debug('Error happened while validating snapshot! %O', err)
     // TODO something else here
   }
 
   private onDataValidationError = (err: any) => {
-    Logger.error('Error happened while validating data! %O', err)
+    debug('Error happened while validating data! %O', err)
     // TODO something else here
   }
 
@@ -135,7 +130,9 @@ export class ExchangeSocket extends SbWebSocket {
     onSnapshot,
     onSubscriptionEnded,
     duration,
-  }: SubScribeArgs<C, E>): C extends 'books' ? (E extends 'bitfinex' ? Subscription : never) : Subscription => {
+  }: SubScribeArgs<C, E>): C extends 'books'
+    ? (E extends 'binance' ? never : Promise<Subscription>)
+    : Promise<Subscription> => {
     const req = {
       event: 'subscribe',
       uuid: genUuid(),
@@ -146,8 +143,8 @@ export class ExchangeSocket extends SbWebSocket {
       duration,
     }
     this.ws.send(JSON.stringify(req))
-    Logger.info(`Sending subscription request with UUID ${req.uuid}`)
-    Logger.debug('Request: %O', req) // TODO set to debug
+    debug(`Sending subscription request with UUID ${req.uuid}`)
+    debug('Request: %O', req) // TODO set to debug
 
     return new Promise<Subscription>((resolve, reject) => {
       const types = ExchangeTypes.DataTypes[req.channel][req.exchange]
@@ -174,36 +171,67 @@ export class ExchangeSocket extends SbWebSocket {
   } = {}
 }
 
-export class ExchangeSocketTestnet extends ExchangeSocket {
-  public tickers = <E extends Exchange>(
-    args: Omit<SubScribeArgs<'tickers', E>, 'channel' | 'symbol'>
-  ): Subscription => {
-    const symbol = args.exchange === 'binance' ? 'BTCUSDT' : 'BTCUSD'
+export class ExchangeSocket extends ExchangeSocketBase {
+  constructor(protected ln: LightningApi, onOpen: OnWsOpen) {
+    super(ln, BitcoinNetwork.mainnet, onOpen)
+  }
+
+  public tickers = <E extends Exchange>(args: Tickers<E>): Promise<Subscription> =>
+    this.subscribe({ channel: 'tickers', ...args })
+
+  public books = <E extends Exchange>(args: Books<E>): Promise<Subscription> =>
+    this.subscribe({ channel: 'books', ...args })
+
+  public trades = <E extends Exchange>(args: Trades<E>): Promise<Subscription> =>
+    this.subscribe({ channel: 'trades', ...args })
+}
+
+/**
+ *
+ */
+export class ExchangeSocketTestnet extends ExchangeSocketBase {
+  constructor(protected ln: LightningApi, onOpen: OnWsOpen) {
+    super(ln, BitcoinNetwork.testnet, onOpen)
+  }
+
+  private getSymbol = <E extends Exchange>(exchange: E): ExchangeSymbols<E> => {
+    if (exchange === 'binance') {
+      return 'BCTUSDT' as any
+    } else {
+      return 'BTCUSD' as any
+    }
+  }
+
+  public tickers = <E extends Exchange>(args: TestnetArgs<Tickers<E>>): Promise<Subscription> => {
     return this.subscribe({
       channel: 'tickers',
-      symbol: symbol as any,
+      symbol: this.getSymbol(args.exchange),
       ...args,
     })
   }
 
-  public books = <E extends Exchange>(args: Omit<SubScribeArgs<'books', E>, 'channel' | 'symbol'>): Subscription => {
-    const symbol = args.exchange === 'binance' ? 'BTCUSDT' : 'BTCUSD'
+  public books = <E extends Exchange>(args: TestnetArgs<Books<E>>): Promise<Subscription> => {
     return this.subscribe({
-      channel: 'tickers',
-      symbol: symbol as any,
+      channel: 'books',
+      symbol: this.getSymbol(args.exchange),
       ...args,
     })
   }
 
-  public trades = <E extends Exchange>(args: Omit<SubScribeArgs<'trades', E>, 'channel' | 'symbol'>): Subscription => {
-    const symbol = args.exchange === 'binance' ? 'BTCUSDT' : 'BTCUSD'
+  public trades = <E extends Exchange>(args: TestnetArgs<Trades<E>>): Promise<Subscription> => {
     return this.subscribe({
-      channel: 'tickers',
-      symbol: symbol as any,
+      channel: 'trades',
+      symbol: this.getSymbol(args.exchange),
       ...args,
     })
   }
 }
+
+type Trades<E extends Exchange> = NoChannel<SubScribeArgs<'trades', E>>
+type Tickers<E extends Exchange> = NoChannel<SubScribeArgs<'tickers', E>>
+type Books<E extends Exchange> = NoChannel<SubScribeArgs<'books', E>>
+type NoChannel<T> = Omit<T, 'channel'>
+type TestnetArgs<T> = Omit<T, 'symbol'>
 
 interface ActiveSubscription<T extends t.Type<any>> {
   activated: boolean
@@ -211,7 +239,7 @@ interface ActiveSubscription<T extends t.Type<any>> {
   dataType: T
   onSnapshot: (data: any) => any
   onData: (data: any) => any
-  onSubscriptionEnded: (datapoits: Array<Datapoint<T>>) => any
+  onSubscriptionEnded?: (datapoits: Array<Datapoint<T>>) => any
   datapoints: Array<Datapoint<T>>
   refundInvoice: string
 }

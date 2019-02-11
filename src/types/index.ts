@@ -1,8 +1,9 @@
+import makeDebug from 'debug'
 import * as t from 'io-ts'
 import * as types from 'io-ts-types'
 import { PathReporter } from 'io-ts/lib/PathReporter'
 import WebSocket from 'ws'
-// import { ValidationLogger } from "../logging";
+
 import { Exchange } from './exchange'
 import { ALL_BOOKS_DATA_TYPES } from './exchange/books'
 import { ExchangeSymbol } from './exchange/symbols'
@@ -10,6 +11,8 @@ import { ALL_TICKERS_DATA_TYPES } from './exchange/tickers'
 import { ALL_TRADES_DATA_TYPES } from './exchange/trades'
 import { NbaTypes } from './nba'
 import { NflTypes } from './nfl'
+
+const debug = makeDebug('validation')
 
 export type SeasonPhase = 'Preseason' | 'Regular' | 'Postseason'
 export type StatType = 'passing' | 'rushing' | 'receiving' | 'defense'
@@ -33,73 +36,69 @@ export class DataValidationError extends Error {
   }
 }
 
-const ValidationLogger = null as any
-
 const validate = (data: any[] | object, type: t.Type<any>, onError: OnError) => {
   if (Array.isArray(data)) {
-    ValidationLogger.debug(`Validating %O $`, data.slice(0, 3))
+    debug(`Validating %O $`, data.slice(0, 3))
     if (data.length > 3) {
-      ValidationLogger.debug('( + %d more elements)', data.length - 3)
+      debug('( + %d more elements)', data.length - 3)
     }
   } else {
-    ValidationLogger.debug(`Validating %O $`, data)
+    debug(`Validating %O $`, data)
   }
 
   const decodedE = type.decode(data)
   const decoded = decodedE.getOrElseL(() => {
     const paths = PathReporter.report(decodedE)
-    ValidationLogger.error('Got errors while validating a %s: %O', type.name, paths)
+    debug('Got errors while validating a %s: %O', type.name, paths)
     const pathsStr = paths.join('\n')
     return onError(new DataValidationError(pathsStr))
   })
-  ValidationLogger.debug(`Validation of ${type.name} OK`)
+  debug(`Validation of ${type.name} OK`)
   return decoded
 }
 
-export const validateSnapshotMessage = (
-  msg: WebSocket.Data,
-  type: t.Type<any>,
-  onError: OnError
-): ValidateSnapshotResult => {
-  const msgStr = msg.toString()
-  const json: { uuid?: string; snapshot?: any[] } = JSON.parse(msgStr)
-  ValidationLogger.debug('Got snapshot validation request for %s', type.name)
-  const { uuid, snapshot } = json
-  if (!uuid) {
-    return onError(`Message ${msgStr} has no UUID`)
-  } else if (!snapshot) {
-    return onError(`Message ${msgStr} has no 'snapshot' field!`)
-  } else if (!Array.isArray(snapshot)) {
-    return onError(`Snapshot in message ${msgStr} is not an array!`)
-  }
-
-  const decoded = validate(snapshot, type, onError)
-  ValidationLogger.debug('Snapshot validation OK')
-  return { uuid, snapshot: decoded }
-}
-
-export const validateDataMessage = (msg: WebSocket.Data, type: t.Type<any>, onError: OnError): ValidateDataResult => {
-  const msgStr = msg.toString()
-  const json: { uuid?: string; data?: any[] } = JSON.parse(msgStr)
-  ValidationLogger.debug('Got data validation request for %s', type.name)
-  const { uuid, data } = json
-  if (Array.isArray(data)) {
-    ValidationLogger.debug(`Data is array with ${data.length} elements`)
-    const firstElem = data[0]
-    if (firstElem) {
-      ValidationLogger.debug('First elemeht: %O', firstElem)
+export const Validate = {
+  snapshot: (msg: WebSocket.Data, type: t.Type<any>, onError: OnError): ValidateSnapshotResult => {
+    const msgStr = msg.toString()
+    const json: { uuid?: string; snapshot?: any[] } = JSON.parse(msgStr)
+    debug('Got snapshot validation request for %s', type.name)
+    const { uuid, snapshot } = json
+    if (!uuid) {
+      return onError(`Message ${msgStr} has no UUID`)
+    } else if (!snapshot) {
+      return onError(`Message ${msgStr} has no 'snapshot' field!`)
+    } else if (!Array.isArray(snapshot)) {
+      return onError(`Snapshot in message ${msgStr} is not an array!`)
     }
-  }
-  if (!uuid) {
-    return onError(`Message ${msgStr} has no UUID!`)
-  } else if (!data) {
-    return onError(`Message ${msgStr} has no 'data' field!`)
-  }
 
-  const decoded = validate(data, type, onError)
-  ValidationLogger.debug('Data message validation OK')
+    const decoded = validate(snapshot, type, onError)
+    debug('Snapshot validation OK')
+    return { uuid, snapshot: decoded }
+  },
 
-  return { uuid, data: decoded }
+  data: (msg: WebSocket.Data, type: t.Type<any>, onError: OnError): ValidateDataResult => {
+    const msgStr = msg.toString()
+    const json: { uuid?: string; data?: any[] } = JSON.parse(msgStr)
+    debug('Got data validation request for %s', type.name)
+    const { uuid, data } = json
+    if (Array.isArray(data)) {
+      debug(`Data is array with ${data.length} elements`)
+      const firstElem = data[0]
+      if (firstElem) {
+        debug('First elemeht: %O', firstElem)
+      }
+    }
+    if (!uuid) {
+      return onError(`Message ${msgStr} has no UUID!`)
+    } else if (!data) {
+      return onError(`Message ${msgStr} has no 'data' field!`)
+    }
+
+    const decoded = validate(data, type, onError)
+    debug('Data message validation OK')
+
+    return { uuid, data: decoded }
+  },
 }
 
 export type WelcomeMessageType = t.TypeOf<typeof MessageTypes.Welcome>

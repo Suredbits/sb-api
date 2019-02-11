@@ -28,7 +28,9 @@
     "postversion": "git push && git push --tags"
   },
   "devDependencies": {
+    "@types/debug": "^4.1.0",
     "@types/request-promise-native": "^1.0.15",
+    "@types/uuid": "^3.4.4",
     "@types/ws": "^6.0.1",
     "prettier": "^1.16.4",
     "tslint": "^5.12.1",
@@ -36,10 +38,12 @@
     "typescript": "^3.3.3"
   },
   "dependencies": {
-    "@types/uuid": "^3.4.4",
     "assert-never": "^1.1.0",
+    "debug": "^4.1.1",
     "io-ts": "^1.8.1",
     "io-ts-types": "^0.4.2",
+    "lnd-async": "^1.6.0",
+    "request": "^2.88.0",
     "request-promise-native": "^1.0.5",
     "uuid": "^3.3.2",
     "ws": "^6.1.3"

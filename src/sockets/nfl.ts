@@ -1,4 +1,10 @@
 import { BitcoinNetwork, LightningApi } from '../lightning'
+import { SeasonPhase, StatType } from '../types'
+import { NflTeamType } from '../types/nfl'
+import { API } from './common'
+import { OnWsOpen } from './common'
+import { PayPerCallSocket } from './paypercall'
+
 import {
   NflGamesResponseType,
   NflPlayerResponseType,
@@ -64,7 +70,7 @@ export class NflSocketTestnet extends PayPerCallSocket {
     return this.sendRequest({ ...args, channel: 'games' }, NflTypes.GamesResponseType, 'NFL games - testnet') as any
   }
 
-  public players = (args: TestnetArgs<NflPlayersRequestArgs>): Promise<NflPlayerResponseType> => {
+  public players = (args: TestnetArgs<NflPlayersRequestArgs> = {}): Promise<NflPlayerResponseType> => {
     return this.sendRequest(
       { ...args, ...testnetVals, channel: 'players' },
       NflTypes.PlayersResponseType,
@@ -111,11 +117,6 @@ const testnetVals = {
   firstName: 'Tom',
   lastName: 'Brady',
 }
-
-import { API } from '.'
-import { SeasonPhase, StatType } from '../types'
-import { NflTeamType } from '../types/nfl'
-import { OnWsOpen, PayPerCallSocket } from './common'
 
 export interface NflGamesRequestArgs {
   week: number
