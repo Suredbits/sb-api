@@ -56,7 +56,7 @@ const exchangeSocket = await Sockets.exchangeTestnet(eclair)
 import { Eclair, Sockets } from 'sb-api'
 
 const ln = Ecliar({ rpcPass: 'secret' })
-const exchangeSocket = Sockets.exchangeTestnet
+const exchangeSocket = await Sockets.exchangeTestnet()
 exchangeSocket.tickers({
   duration: 10000,
   exchange: 'binance',
@@ -67,10 +67,10 @@ exchangeSocket.tickers({
   refundInvoice,
 })
 
-const nflSocket = Sockets.nflTestnet
+const nflSocket = await Sockets.nflTestnet()
 nflSocket.roster({ teamId: 'CLE' })
 
-const nbaSocket = Sockets.nbaTestnet
+const nbaSocket = await Sockets.nbaTestnet()
 nbaSocket.roster({ teamId: 'DAL' })
 ```
 
