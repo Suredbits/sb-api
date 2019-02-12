@@ -1,8 +1,21 @@
 > This library is still a WIP, and not available on npm. Don't use it yet, official launch is in a couple of days.
 
-# JS/TS client library for Suredbits APIs
+<!-- h1 instead of # to avoid TOC including header -->
+<h1>JS/TS client library for Suredbits APIs</h1>
 
 This is a client library for interactig with the Suredbits APIs for NFL, NBA and cryptocurrency market data. See our [API docs](https://suredbits.com/api) for more information.
+
+- [Add it to your project:](#add-it-to-your-project)
+    - [Yarn](#yarn)
+    - [npm](#npm)
+- [Usage:](#usage)
+  - [Setting up the connection](#setting-up-the-connection)
+    - [Eclair](#eclair)
+    - [LND](#lnd)
+    - [`c-lightning`](#c-lightning)
+  - [Request data](#request-data)
+  - [Types](#types)
+- [Debug logging](#debug-logging)
 
 ## Add it to your project:
 
@@ -24,6 +37,13 @@ $ npm install --save sb-api
 
 Our APIs are paid for by using the Bitcoin Lightning Network. We suport the major Lightning implementations: [`lnd`](https://github.com/lightningnetwork/lnd), [`c-lightning`](https://github.com/ElementsProject/lightning) and [Eclair](https://github.com/acinq/eclair).
 
+We assume you have a running Lightning client. Behind the scenes it does two things with the provided client:
+
+1. Pay invoices. We pay for access to the Suredbits` APIs by paying Lightning invoices.
+1. Generate invoices without an amount specified. When setting up a subscription we provide a refund invoice where money can be refunded to us if we abort or subscription before it's up or something causes the server to abort the subscription.
+
+You should not keep large amounts of money on the node you're using with this library.
+
 #### Eclair
 
 ```typescript
@@ -41,14 +61,20 @@ import { Lnd, Sockets } from 'sb-api'
 
 const lnd = await Lnd()
 const refundInvoice = await lnd.receive()
-const exchangeSocket = await Sockets.exchangeTestnet(eclair)
+const exchangeSocket = await Sockets.exchangeTestnet(lnd)
 ```
 
 #### `c-lightning`
 
 ```typescript
-// TODO
+import { CLightning } from 'sb-api'
+
+const client = await CLightning()
+
+// You then pass client into the appropriate socket you're interested in.
 ```
+
+See [`doc/ln-clients.md`](doc/ln-clients.md) for more information on how to use your favorite LN implementation, and what the available options are.
 
 ### Request data
 
@@ -68,10 +94,10 @@ exchangeSocket.tickers({
 })
 
 const nflSocket = await Sockets.nflTestnet()
-nflSocket.roster({ teamId: 'CLE' })
+const cleRoster = await nflSocket.roster({ teamId: 'CLE' })
 
 const nbaSocket = await Sockets.nbaTestnet()
-nbaSocket.roster({ teamId: 'DAL' })
+const dalRoster = await nbaSocket.roster({ teamId: 'DAL' })
 ```
 
 ### Types
