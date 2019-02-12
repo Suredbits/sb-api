@@ -18,6 +18,8 @@ export interface LightningApi {
 }
 
 export { Eclair } from './eclair'
+export { CLightning } from './clightning'
+export { Lnd } from './lnd'
 
 export const enum BitcoinNetwork {
   testnet = 'testnet',
