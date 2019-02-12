@@ -79,9 +79,9 @@ See [`doc/ln-clients.md`](doc/ln-clients.md) for more information on how to use 
 ### Request data
 
 ```typescript
-import { Eclair, Sockets } from 'sb-api'
+import { Lnd, Sockets } from 'sb-api'
 
-const ln = Ecliar({ rpcPass: 'secret' })
+const ln = await Lnd()
 const exchangeSocket = await Sockets.exchangeTestnet()
 exchangeSocket.tickers({
   duration: 10000,
