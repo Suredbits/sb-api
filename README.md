@@ -3,7 +3,7 @@
 <!-- h1 instead of # to avoid TOC including header -->
 <h1>JS/TS client library for Suredbits APIs</h1>
 
-This is a client library for interactig with the Suredbits APIs for NFL, NBA and cryptocurrency market data. See our [API docs](https://suredbits.com/api) for more information.
+This is a client library for interacting with the Suredbits APIs for NFL, NBA and cryptocurrency market data. See our [API docs](https://suredbits.com/api) for more information.
 
 - [Add it to your project:](#add-it-to-your-project)
     - [Yarn](#yarn)
@@ -116,6 +116,6 @@ This library uses the [`debug`](https://www.npmjs.com/package/debug) module for 
 - `socket:exchange` - crypto market data logging
 - `validation` - logs the validation of incoming data from the API
 
-To activate logging output for a given namespace you need to set the `DEBUG` environment variable. Namespaces are hierarchically organized with `:` as the level separator. So setting `DEBUG` to `socket` activates the `socket:base`, `socket:ppc` and `socket:exchange` namespaces. It's possible to specify multiple namespaces by comma-separating them. `DEBUG=*` causes all namespaces to get logged.
+To activate logging output for a given namespace you need to set the `DEBUG` environment variable. Namespaces are hierarchically organized with `:` as the level separator. It's possible to specify multiple namespaces by comma-separating them. `DEBUG=*` causes all namespaces to get logged. Setting `DEBUG` to `socket:*` activates the `socket:base`, `socket:ppc` and `socket:exchange` namespaces.
 
-`DEBUG=lightning,socket:base,socket:ppc` would enabling logging of all Lightning activity, the functionality common for all sockets and the functionality common for pay-per-call sockets (NBA & NFL).
+`DEBUG=lightning:*,socket:base,socket:ppc` would enabling logging of all Lightning activity, the functionality common for all sockets and the functionality common for pay-per-call sockets (NBA & NFL).
