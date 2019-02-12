@@ -38,10 +38,12 @@
     "typescript": "^3.3.3"
   },
   "dependencies": {
+    "assert": "^1.4.1",
     "assert-never": "^1.1.0",
     "debug": "^4.1.1",
     "io-ts": "^1.8.1",
     "io-ts-types": "^0.4.2",
+    "lightning-client": "^0.5.2-beta.8",
     "lnd-async": "^1.6.0",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.5",
