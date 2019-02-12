@@ -39,7 +39,9 @@ class EclairImpl implements LightningApi {
     return this.sendRpcReq('send', invoice)
   }
 
-  private sendRpcReq = (method: 'send' | 'receive', ...params: Array<string | number>): Promise<any> => {
+  public getInfo = () => this.sendRpcReq('getinfo')
+
+  private sendRpcReq = (method: 'send' | 'receive' | 'getinfo', ...params: Array<string | number>): Promise<any> => {
     return request(this.uri, {
       json: true,
       method: 'POST',
@@ -56,4 +58,11 @@ class EclairImpl implements LightningApi {
   }
 }
 
-export const Eclair = (args: EclairArgs): Eclair => new EclairImpl(args)
+export const Eclair = async (args: EclairArgs): Promise<Eclair> => {
+  const client = new EclairImpl(args)
+  debug('Trying to connect to client')
+  const info = await client.getInfo()
+  debug('Succeeded!')
+  debug('getinfo output: %o', info)
+  return client
+}

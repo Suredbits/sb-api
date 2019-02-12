@@ -9,6 +9,12 @@ export interface LightningApi {
    * optional description
    */
   receive: (description?: string) => Promise<string>
+
+  /**
+   * Verify that we're communicating with the client
+   * properly
+   */
+  getInfo: () => Promise<any>
 }
 
 export { Eclair } from './eclair'

@@ -2,6 +2,7 @@ declare module 'lnd-async' {
   export interface LndClient {
     sendPaymentSync: (args: { payment_request: string }) => Promise<any>
     addInvoice: (args: { memo?: string }) => Promise<any>
+    getInfo: ({}) => Promise<any>
   }
 
   export interface ConnectArgs {
@@ -42,5 +43,7 @@ declare module 'lightning-client' {
       status: string
       payment_preimage: string
     }>
+
+    public getinfo: () => Promise<any>
   }
 }

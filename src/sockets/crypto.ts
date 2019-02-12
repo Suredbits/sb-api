@@ -121,7 +121,7 @@ abstract class ExchangeSocketBase extends SbWebSocket {
     // TODO something else here
   }
 
-  public subscribe = <C extends ExchangeChannel, E extends Exchange>({
+  protected subscribe = <C extends ExchangeChannel, E extends Exchange>({
     symbol,
     refundInvoice,
     channel,
