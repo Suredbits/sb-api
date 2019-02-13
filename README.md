@@ -1,9 +1,10 @@
-> This library is still a WIP, and not available on npm. Don't use it yet, official launch is in a couple of days.
-
+[![npm version](https://badge.fury.io/js/sb-api.svg)](https://badge.fury.io/js/sb-api)
 <!-- h1 instead of # to avoid TOC including header -->
 <h1>JS/TS client library for Suredbits APIs</h1>
 
 This is a client library for interacting with the Suredbits APIs for NFL, NBA and cryptocurrency market data. See our [API docs](https://suredbits.com/api) for more information.
+
+You're also welcome to join our [Slack]( https://join.slack.com/t/suredbits/shared_invite/enQtNDEyMjY3MTg1MTg3LTYyYjkwOGUzMDQ4NDAwZjE1M2I3MmQyNWNlZjNlYjg4OGRjYTRjNWUwNjRjNjg4Y2NjZjAxYjU1N2JjMTU1YWM ), if you have any questions about our APIs, our open source Bitcoin library [Bitcoin-S](https://github.com/bitcoin-s/bitcoin-s-core) or just want to discuss Bitcoin, Lightning, NBA & NFL or anything else.
 
 - [Add it to your project:](#add-it-to-your-project)
     - [Yarn](#yarn)
@@ -99,6 +100,8 @@ const cleRoster = await nflSocket.roster({ teamId: 'CLE' })
 const nbaSocket = await Sockets.nbaTestnet()
 const dalRoster = await nbaSocket.roster({ teamId: 'DAL' })
 ```
+
+See our [API docs](https://suredbits.com/api) for complete code samples for making requests, as well as what responses look like, for all API endpoints and request types. 
 
 ### Types
 
