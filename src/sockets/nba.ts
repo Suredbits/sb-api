@@ -1,8 +1,11 @@
 import { BitcoinNetwork, LightningApi } from '../lightning'
 import {
   NbaGamesResponseType,
+  NbaInfoResponseType,
   NbaPlayerResponseType,
   NbaScheduleResponseType,
+  NbaSeason,
+  NbaStatsResponseType,
   NbaTeamType,
   NbaTypes,
 } from '../types/nba'
@@ -16,10 +19,7 @@ export class NbaSocket extends PayPerCallSocket {
     super(API.NBA, ln, onOpen, BitcoinNetwork.mainnet)
   }
 
-  public info = () =>
-    this.sendRequest({ channel: 'info' }, (() => {
-      throw new Error('todo')
-    })() as any) // TODO fix me
+  public info = (): Promise<NbaInfoResponseType> => this.sendRequest({ channel: 'info' }, NbaTypes.InfoType, 'NBA info')
 
   public games = (args: NbaGamesRequestArgs): Promise<NbaGamesResponseType> => {
     return this.sendRequest({ ...args, channel: 'games' }, NbaTypes.GamesResponseType, 'NBA games')
@@ -44,6 +44,28 @@ export class NbaSocket extends PayPerCallSocket {
       'NBA roster'
     )
   }
+
+  public statsById = (args: NbaStatsByIdRequestArgs): Promise<NbaStatsResponseType> => {
+    return this.sendRequest(
+      {
+        ...args,
+        channel: 'stats',
+      },
+      NbaTypes.StatsResponseType,
+      'NBA stats by ID'
+    )
+  }
+
+  public statsByName = (args: NbaStatsByNameWeekRequestArgs): Promise<NbaStatsResponseType> => {
+    return this.sendRequest(
+      {
+        ...args,
+        channel: 'stats',
+      },
+      NbaTypes.StatsResponseType,
+      'NBA stats by name, week and year'
+    )
+  }
 }
 
 export class NbaSocketTestnet extends PayPerCallSocket {
@@ -51,10 +73,8 @@ export class NbaSocketTestnet extends PayPerCallSocket {
     super(API.NBA, ln, onOpen, BitcoinNetwork.testnet)
   }
 
-  public info = () =>
-    this.sendRequest({ channel: 'info' }, (() => {
-      throw new Error('todo')
-    })() as any) // TODO fix me
+  public info = (): Promise<NbaInfoResponseType> =>
+    this.sendRequest({ channel: 'info' }, NbaTypes.InfoType, 'NBA info - testnet')
 
   public games = (args: NbaGamesRequestArgs): Promise<NbaGamesResponseType> => {
     return this.sendRequest({ ...args, channel: 'games' }, NbaTypes.GamesResponseType, 'NBA games testnet')
@@ -83,6 +103,28 @@ export class NbaSocketTestnet extends PayPerCallSocket {
       'NBA roster testnet'
     )
   }
+
+  public statsById = (args: TestnetArgs<NbaStatsByIdRequestArgs>): Promise<NbaStatsResponseType> => {
+    return this.sendRequest(
+      {
+        ...args,
+        channel: 'stats',
+      },
+      NbaTypes.StatsResponseType,
+      'NBA stats by ID'
+    )
+  }
+
+  public statsByName = (args: TestnetArgs<NbaStatsByNameWeekRequestArgs>): Promise<NbaStatsResponseType> => {
+    return this.sendRequest(
+      {
+        ...args,
+        channel: 'stats',
+      },
+      NbaTypes.StatsResponseType,
+      'NBA stats by name, week and year'
+    )
+  }
 }
 
 type TestnetArgs<T> = Omit<T, keyof typeof testnetVals>
@@ -107,7 +149,7 @@ interface NbaPlayersRequestArgs {
 interface NbaTeamRequestArgs {
   teamId: NbaTeamType
   retrieve: 'roster' | 'schedule'
-  season?: number
+  season?: NbaSeason
 }
 
 interface NbaStatsByIdRequestArgs {

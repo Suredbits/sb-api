@@ -1,6 +1,6 @@
 import { BitcoinNetwork, LightningApi } from '../lightning'
 import { SeasonPhase, StatType } from '../types'
-import { NflTeamType } from '../types/nfl'
+import { NflInfoResponse, NflTeamType } from '../types/nfl'
 import { API } from './common'
 import { OnWsOpen } from './common'
 import { PayPerCallSocket } from './paypercall'
@@ -19,6 +19,8 @@ export class NflSocket extends PayPerCallSocket {
   constructor(ln: LightningApi, onOpen: OnWsOpen) {
     super(API.NFL, ln, onOpen, BitcoinNetwork.mainnet)
   }
+
+  public info = (): Promise<NflInfoResponse> => this.sendRequest({ channel: 'info' }, NflTypes.InfoType, 'NFL info')
 
   public games = (args: NflGamesRequestArgs): Promise<NflGamesResponseType> => {
     return this.sendRequest({ ...args, channel: 'games' }, NflTypes.GamesResponseType, 'NFL games') as any
@@ -44,7 +46,7 @@ export class NflSocket extends PayPerCallSocket {
     ) as any
   }
 
-  public statsById = (args: NflStatsByIdRequestArgs): Promise<NflStatsResponse> => {
+  public statsById = <S extends StatType>(args: NflStatsByIdRequestArgs<S>): Promise<NflStatsResponse<S>> => {
     return this.sendRequest(
       { ...args, channel: 'stats' },
       NflTypes.StatsResponsesByType[args.statType],
@@ -52,7 +54,9 @@ export class NflSocket extends PayPerCallSocket {
     )
   }
 
-  public statsByNameAndWeek = (args: NflStatsByNameWeekRequestArgs): Promise<NflStatsResponse> => {
+  public statsByNameAndWeek = <S extends StatType>(
+    args: NflStatsByNameWeekRequestArgs<S>
+  ): Promise<NflStatsResponse<S>> => {
     return this.sendRequest(
       { ...args, channel: 'stats' },
       NflTypes.StatsResponsesByType[args.statType],
@@ -64,6 +68,10 @@ export class NflSocket extends PayPerCallSocket {
 export class NflSocketTestnet extends PayPerCallSocket {
   constructor(ln: LightningApi, onOpen: OnWsOpen) {
     super(API.NFL, ln, onOpen, BitcoinNetwork.testnet)
+  }
+
+  public info = (): Promise<NflInfoResponse> => {
+    return this.sendRequest({ channel: 'info' }, NflTypes.InfoType, 'NFL info - testnet')
   }
 
   public games = (args: NflGamesRequestArgs): Promise<NflGamesResponseType> => {
@@ -94,7 +102,9 @@ export class NflSocketTestnet extends PayPerCallSocket {
     ) as any
   }
 
-  public statsById = (args: TestnetArgs<NflStatsByIdRequestArgs>): Promise<NflStatsResponse> => {
+  public statsById = <S extends StatType>(
+    args: TestnetArgs<NflStatsByIdRequestArgs<S>>
+  ): Promise<NflStatsResponse<S>> => {
     return this.sendRequest(
       { ...args, ...testnetVals, channel: 'stats' },
       NflTypes.StatsResponsesByType[args.statType],
@@ -102,7 +112,9 @@ export class NflSocketTestnet extends PayPerCallSocket {
     )
   }
 
-  public statsByNameAndWeek = (args: TestnetArgs<NflStatsByNameWeekRequestArgs>): Promise<NflStatsResponse> => {
+  public statsByNameAndWeek = <S extends StatType>(
+    args: TestnetArgs<NflStatsByNameWeekRequestArgs<S>>
+  ): Promise<NflStatsResponse<S>> => {
     return this.sendRequest(
       { ...args, ...testnetVals, channel: 'stats' },
       NflTypes.StatsResponsesByType[args.statType],
@@ -137,14 +149,14 @@ export interface NflTeamRequestArgs {
   year?: number
 }
 
-export interface NflStatsByIdRequestArgs {
-  statType: StatType
+export interface NflStatsByIdRequestArgs<S extends StatType> {
+  statType: S
   gameId: string
   playerId: string
 }
 
-export interface NflStatsByNameWeekRequestArgs {
-  statType: StatType
+export interface NflStatsByNameWeekRequestArgs<S extends StatType> {
+  statType: S
   year: number
   week: number
   seasonPhase: SeasonPhase

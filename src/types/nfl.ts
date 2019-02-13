@@ -1,5 +1,6 @@
 import * as t from 'io-ts'
 import * as types from 'io-ts-types'
+
 import { StatType } from '.'
 
 export type NflTeamType = t.TypeOf<typeof NflTypes.NflTeamType>
@@ -7,26 +8,10 @@ export type NflGamesResponseType = t.TypeOf<typeof NflTypes.GamesResponseType>
 export type NflPlayerResponseType = t.TypeOf<typeof NflTypes.PlayersResponseType>
 export type NflScheduleResponseType = t.TypeOf<typeof NflTypes.TeamScheduleResponseType>
 export type NflRosterResponseType = t.TypeOf<typeof NflTypes.TeamRosterResponseType>
-export type NflStatsResponse = t.TypeOf<typeof NflTypes.StatsResponse>
+export type NflStatsResponse<T extends StatType> = t.TypeOf<typeof NflTypes.StatsResponsesByType[T]>
+export type NflInfoResponse = t.TypeOf<typeof NflTypes.InfoType>
 
 export class NflTypes {
-  public static getChannelType = (channel: string) => {
-    switch (channel) {
-      case 'games':
-        return NflTypes.GamesResponseType
-      case 'schedule':
-        return NflTypes.TeamScheduleResponseType
-      case 'roster':
-        return NflTypes.TeamRosterResponseType
-      case 'players':
-        return NflTypes.PlayersResponseType
-      case 'stats':
-        return NflTypes.StatsResponse
-      default:
-        throw TypeError('Unexpected channel ' + channel)
-    }
-  }
-
   public static NflTeamType = t.keyof({
     ARI: t.null,
     LA: t.null,
@@ -100,6 +85,14 @@ export class NflTypes {
     Regular: t.null,
     Postseason: t.null,
     Preseason: t.null,
+  })
+
+  public static InfoType = t.type({
+    version: t.string,
+    lastRosterDownload: types.DateFromISOString,
+    seasonType: NflTypes.SeasonTypes,
+    seasonYear: t.Integer,
+    week: t.string,
   })
 
   private static TeamWithScoresType = t.type({
@@ -215,14 +208,17 @@ export class NflTypes {
     'NflRushingStats'
   )
 
-  public static StatsResponsesByType: { [key in StatType]: t.Type<any> } = {
+  public static StatsResponsesByType = {
     defense: NflTypes.DefenseStats,
     passing: NflTypes.PassingStats,
     receiving: NflTypes.ReceivingStats,
     rushing: NflTypes.RushingStats,
   }
 
-  public static StatsResponse = t.intersection([NflTypes.PassingStats, NflTypes.DefenseStats], 'NflStatsResponse')
+  public static StatsResponse = t.intersection(
+    [NflTypes.PassingStats, NflTypes.DefenseStats, NflTypes.ReceivingStats, NflTypes.RushingStats],
+    'NflStatsResponse'
+  )
 
   public static ALL_NFL_TYPES = [
     NflTypes.GamesResponseType,

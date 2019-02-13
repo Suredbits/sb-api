@@ -6,6 +6,9 @@ export type NbaGamesResponseType = t.TypeOf<typeof NbaTypes.GamesResponseType>
 export type NbaPlayerResponseType = t.TypeOf<typeof NbaTypes.PlayersResponseType>
 export type NbaScheduleResponseType = t.TypeOf<typeof NbaTypes.TeamScheduleResponseType>
 export type NbaRosterResponseType = t.TypeOf<typeof NbaTypes.TeamRosterResponseType>
+export type NbaStatsResponseType = t.TypeOf<typeof NbaTypes.StatsResponseType>
+export type NbaInfoResponseType = t.TypeOf<typeof NbaTypes.InfoType>
+export type NbaSeason = t.TypeOf<typeof Season>
 
 const SeasonPhaseType = t.keyof({
   Regular: t.null,
@@ -13,23 +16,19 @@ const SeasonPhaseType = t.keyof({
   Postseason: t.null,
 })
 
+const Season = t.keyof({
+  '2016-2017': t.null,
+  '2017-2018': t.null,
+  '2018-2019': t.null,
+})
+
 export class NbaTypes {
-  public static getChannelType = (channel: string) => {
-    switch (channel) {
-      case 'games':
-        return NbaTypes.GamesResponseType
-      case 'schedule':
-        return NbaTypes.TeamScheduleResponseType
-      case 'roster':
-        return NbaTypes.TeamRosterResponseType
-      case 'players':
-        return NbaTypes.PlayersResponseType
-      case 'stats':
-        throw TypeError('Havent implemented stats')
-      default:
-        throw TypeError('Unexpected channel ' + channel)
-    }
-  }
+  public static InfoType = t.type({
+    seasonYear: t.string,
+    seasonPhase: SeasonPhaseType,
+    version: t.Integer,
+    lastUpdated: types.DateFromISOString,
+  })
 
   public static TeamType = t.keyof({
     ATL: t.null,
@@ -102,6 +101,29 @@ export class NbaTypes {
 
   public static TeamRosterResponseType = NbaTypes.PlayersResponseType
   public static TeamScheduleResponseType = NbaTypes.GamesResponseType
+
+  public static StatsResponseType = t.array(
+    t.type({
+      playerId: t.Integer,
+      min: t.Integer,
+      fgm: t.Integer,
+      fga: t.Integer,
+      tpm: t.Integer,
+      tpa: t.Integer,
+      ftm: t.Integer,
+      fta: t.Integer,
+      plusminus: t.Integer,
+      off: t.Integer,
+      deff: t.Integer,
+      tot: t.Integer,
+      ast: t.Integer,
+      pf: t.Integer,
+      st: t.Integer,
+      to: t.Integer,
+      bs: t.Integer,
+      pts: t.Integer,
+    })
+  )
 
   public static ALL_NBA_TYPES = [
     NbaTypes.GamesResponseType,
