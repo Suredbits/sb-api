@@ -1,16 +1,16 @@
 import makeDebug from 'debug'
 import * as t from 'io-ts'
-import genUuid from 'uuid'
 import WebSocket from 'ws'
 
 import { MessageTypes, PpcDataMessageType, Validate } from '../types'
+import { UUID } from '../uuid'
 import { AtleastUUID, SbWebSocket } from './common'
 
 const debug = makeDebug('socket:ppc')
 
 export abstract class PayPerCallSocket extends SbWebSocket {
   protected sendRequest = (request: object, type: t.Type<any>, requestType?: string): Promise<any> => {
-    const reqWithUuid = { ...request, uuid: genUuid() }
+    const reqWithUuid = { ...request, uuid: UUID.newUUID() }
     this.ws.send(JSON.stringify(reqWithUuid))
     debug(`Sending ${requestType ? requestType + ' ' : ''} request with UUID ${reqWithUuid.uuid}`)
     return new Promise((resolve, reject) => {
@@ -40,7 +40,9 @@ export abstract class PayPerCallSocket extends SbWebSocket {
       debug('Message is data message with UUID %s', uuid)
 
       this.pendingRequests[uuid] = undefined
-      if (Array.isArray(msg.data)) {
+      if (MessageTypes.isInfoType(type)) {
+        resolve(msg.data as any)
+      } else if (Array.isArray(msg.data)) {
         resolve(msg.data)
       } else {
         reject(`Expected data array for response with UUID ${uuid}, got single element!`)

@@ -162,6 +162,8 @@ export class MessageTypes {
     'LnInvoiceType'
   )
 
+  public static isInfoType = (type: t.Type<any>): boolean => type === NbaTypes.InfoType || type === NflTypes.InfoType
+
   public static isInvoice = (msg: any): msg is t.TypeOf<typeof MessageTypes.Invoice> => typeof msg.invoice === 'string'
 
   public static isSnapshot = (msg: any): msg is { uuid: string; snapshot: any[] } =>

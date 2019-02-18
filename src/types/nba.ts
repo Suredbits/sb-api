@@ -23,12 +23,15 @@ const Season = t.keyof({
 })
 
 export class NbaTypes {
-  public static InfoType = t.type({
-    seasonYear: t.string,
-    seasonPhase: SeasonPhaseType,
-    version: t.Integer,
-    lastUpdated: types.DateFromISOString,
-  })
+  public static InfoType = t.type(
+    {
+      seasonYear: t.string,
+      seasonPhase: SeasonPhaseType,
+      version: t.Integer,
+      lastUpdated: types.DateFromISOString,
+    },
+    'NBA Info response type'
+  )
 
   public static TeamType = t.keyof({
     ATL: t.null,
@@ -78,7 +81,8 @@ export class NbaTypes {
       finished: t.boolean,
       seasonPhase: SeasonPhaseType,
       year: t.string,
-    })
+    }),
+    'NBA Games response'
   )
 
   public static PlayersResponseType = t.array(
@@ -96,7 +100,8 @@ export class NbaTypes {
         team: NbaTypes.TeamType,
       }),
       t.partial({}),
-    ])
+    ]),
+    'NBA Players response'
   )
 
   public static TeamRosterResponseType = NbaTypes.PlayersResponseType
@@ -122,7 +127,8 @@ export class NbaTypes {
       to: t.Integer,
       bs: t.Integer,
       pts: t.Integer,
-    })
+    }),
+    'NBA stats response'
   )
 
   public static ALL_NBA_TYPES = [
@@ -130,5 +136,7 @@ export class NbaTypes {
     NbaTypes.PlayersResponseType,
     NbaTypes.TeamRosterResponseType,
     NbaTypes.TeamScheduleResponseType,
+    NbaTypes.StatsResponseType,
+    NbaTypes.InfoType,
   ]
 }

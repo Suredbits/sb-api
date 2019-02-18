@@ -221,6 +221,7 @@ export class NflTypes {
   )
 
   public static ALL_NFL_TYPES = [
+    NflTypes.InfoType,
     NflTypes.GamesResponseType,
     NflTypes.PlayersResponseType,
     NflTypes.TeamRosterResponseType,

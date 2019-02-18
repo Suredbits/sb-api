@@ -1,6 +1,5 @@
 import makeDebug from 'debug'
 import * as t from 'io-ts'
-import genUuid from 'uuid'
 import WebSocket from 'ws'
 
 import { BitcoinNetwork, LightningApi } from '../lightning'
@@ -8,21 +7,62 @@ import { MessageTypes, Validate } from '../types'
 import { Exchange, ExchangeTypes } from '../types/exchange'
 import { ExchangeSymbols } from '../types/exchange/symbols'
 import { Omit } from '../types/util'
+import { UUID } from '../uuid'
 import { API } from './common'
 import { AtleastUUID, OnWsOpen, SbWebSocket } from './common'
 
-export type ExchangeChannel = 'tickers' | 'trades' | 'books'
+export type ExchangeChannel<E extends Exchange> = E extends 'binance' ? BinanceChannels : Channels
+type BinanceChannels = 'tickers' | 'trades'
+type Channels = 'tickers' | 'trades' | 'books'
 
 const debug = makeDebug('socket:exchange')
 
-interface SubScribeArgs<C extends ExchangeChannel, E extends Exchange> {
+interface SubScribeArgs<E extends Exchange, C extends ExchangeChannel<E>> {
+  /**
+   * Which exchange to subscribe to
+   */
   exchange: E
+
+  /**
+   * Which trading symbol (currency pair) to
+   * subscribe to
+   */
   symbol: ExchangeSymbols<E>
+
   channel: C
+  /**
+   * Duration of subscription, in **milliseconds**
+   */
   duration: number
-  refundInvoice: string
+
+  /**
+   * If refundInvoice is not supplied, we ask your LN client
+   * to generate one.
+   */
+  refundInvoice?: string
+
+  /**
+   * Callback that gets executed when the *snapshot* is received.
+   * A snapshot in this context is the pre-existing date that's
+   * neeeded to follow along the updates that's happening on a
+   * given exchange. If you're subscribing to book updates, for
+   * example, you'd use the snapshot to initialize your view
+   * of the order book, and then use the received updates to
+   * keep your view of the book in sync with what's happening
+   * on the exchange.
+   */
   onSnapshot: (snapshot: ExchangeTypes.Snapshot<C, E>) => any
+
+  /**
+   * Callback that gets executed when a data point is received.
+   */
   onData: (data: ExchangeTypes.Data<C, E>) => any
+
+  /**
+   * Callback that gets executed when a subscription is ended.
+   * The argument that gets passed into this function is a list
+   * of all previously collected data points.
+   */
   onSubscriptionEnded?: (datapoint: Array<ExchangeTypes.Data<C, E>>) => any
 }
 
@@ -121,7 +161,7 @@ abstract class ExchangeSocketBase extends SbWebSocket {
     // TODO something else here
   }
 
-  protected subscribe = <C extends ExchangeChannel, E extends Exchange>({
+  protected subscribe = async <E extends Exchange, C extends ExchangeChannel<E>>({
     symbol,
     refundInvoice,
     channel,
@@ -130,12 +170,18 @@ abstract class ExchangeSocketBase extends SbWebSocket {
     onSnapshot,
     onSubscriptionEnded,
     duration,
-  }: SubScribeArgs<C, E>): C extends 'books'
-    ? (E extends 'binance' ? never : Promise<Subscription>)
-    : Promise<Subscription> => {
+  }: SubScribeArgs<E, C>): Promise<C extends 'books' ? (E extends 'binance' ? never : Subscription) : Subscription> => {
+    if (channel === 'books' && exchange === 'binance') {
+      throw TypeError("The 'books' channel is not supported for Binance")
+    }
+    // If user hasn't supplied invoice, we generate one
+    if (!refundInvoice) {
+      refundInvoice = await this.ln.receive()
+    }
+
     const req = {
       event: 'subscribe',
-      uuid: genUuid(),
+      uuid: UUID.newUUID(),
       symbol,
       refundInvoice,
       channel,
@@ -148,6 +194,7 @@ abstract class ExchangeSocketBase extends SbWebSocket {
 
     return new Promise<Subscription>((resolve, reject) => {
       const types = ExchangeTypes.DataTypes[req.channel][req.exchange]
+
       this.subscriptions[req.uuid] = {
         activated: false,
         snapshotType: types.snapshot,
@@ -177,13 +224,13 @@ export class ExchangeSocket extends ExchangeSocketBase {
   }
 
   public tickers = <E extends Exchange>(args: Tickers<E>): Promise<Subscription> =>
-    this.subscribe({ channel: 'tickers', ...args })
+    this.subscribe({ channel: 'tickers' as any, ...args })
 
   public books = <E extends Exchange>(args: Books<E>): Promise<Subscription> =>
-    this.subscribe({ channel: 'books', ...args })
+    this.subscribe({ channel: 'books' as any, ...args })
 
   public trades = <E extends Exchange>(args: Trades<E>): Promise<Subscription> =>
-    this.subscribe({ channel: 'trades', ...args })
+    this.subscribe({ channel: 'trades' as any, ...args })
 }
 
 /**
@@ -204,7 +251,7 @@ export class ExchangeSocketTestnet extends ExchangeSocketBase {
 
   public tickers = <E extends Exchange>(args: TestnetArgs<Tickers<E>>): Promise<Subscription> => {
     return this.subscribe({
-      channel: 'tickers',
+      channel: 'tickers' as any,
       symbol: this.getSymbol(args.exchange),
       ...args,
     })
@@ -212,7 +259,7 @@ export class ExchangeSocketTestnet extends ExchangeSocketBase {
 
   public books = <E extends Exchange>(args: TestnetArgs<Books<E>>): Promise<Subscription> => {
     return this.subscribe({
-      channel: 'books',
+      channel: 'books' as any,
       symbol: this.getSymbol(args.exchange),
       ...args,
     })
@@ -220,16 +267,16 @@ export class ExchangeSocketTestnet extends ExchangeSocketBase {
 
   public trades = <E extends Exchange>(args: TestnetArgs<Trades<E>>): Promise<Subscription> => {
     return this.subscribe({
-      channel: 'trades',
+      channel: 'trades' as any,
       symbol: this.getSymbol(args.exchange),
       ...args,
     })
   }
 }
 
-type Trades<E extends Exchange> = NoChannel<SubScribeArgs<'trades', E>>
-type Tickers<E extends Exchange> = NoChannel<SubScribeArgs<'tickers', E>>
-type Books<E extends Exchange> = NoChannel<SubScribeArgs<'books', E>>
+type Trades<E extends Exchange> = NoChannel<SubScribeArgs<E, E extends 'binance' ? 'trades' : 'trades'>>
+type Tickers<E extends Exchange> = NoChannel<SubScribeArgs<E, E extends 'binance' ? 'tickers' : 'tickers'>>
+type Books<E extends Exchange> = NoChannel<SubScribeArgs<E, E extends 'binance' ? never : 'books'>>
 type NoChannel<T> = Omit<T, 'channel'>
 type TestnetArgs<T> = Omit<T, 'symbol'>
 

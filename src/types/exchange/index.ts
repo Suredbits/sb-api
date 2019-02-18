@@ -5,11 +5,11 @@ import { ALL_EXCHANGE_TICKER_TYPES, ExchangeTickersTypes } from './tickers'
 import { ALL_EXCHANGE_TRADES_TYPES, ExchangeTradesTypes } from './trades'
 
 export declare namespace ExchangeTypes {
-  export type Snapshot<C extends ExchangeChannel, E extends Exchange> = t.TypeOf<
+  export type Snapshot<C extends ExchangeChannel<E>, E extends Exchange> = t.TypeOf<
     typeof ExchangeTypes.DataTypes[C][E]['snapshot']
   >
 
-  export type Data<C extends ExchangeChannel, E extends Exchange> = t.TypeOf<
+  export type Data<C extends ExchangeChannel<E>, E extends Exchange> = t.TypeOf<
     typeof ExchangeTypes.DataTypes[C][E]['data']
   >
 }
