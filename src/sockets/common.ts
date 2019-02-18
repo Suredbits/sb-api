@@ -21,8 +21,28 @@ export type MaybeUUID = Partial<AtleastUUID>
 
 const debug = makeDebug('socket:base')
 
+type PromiseResolver = () => void
+
 export abstract class SbWebSocket {
   public url = this.getApiUrl()
+
+  private closePromiseResolver: PromiseResolver | undefined = undefined
+  public close = async (): Promise<void> => {
+    return new Promise(resolve => {
+      this.closePromiseResolver = resolve
+      const TIMEOUT = 2500
+      debug('Closing WS connection')
+      this.ws.close(WS_CODENAMES.CLOSE_NORMAL)
+      setTimeout(() => {
+        if (this.ws.readyState !== this.ws.CLOSED) {
+          debug(`WS readyState: ${this.ws.readyState}`)
+          debug(`WS state is not closed after ${TIMEOUT} ms, terminating connection`)
+          this.ws.terminate()
+          debug('Terminated WS connection')
+        }
+      }, TIMEOUT)
+    })
+  }
 
   protected ws = (() => {
     debug(`Opening up connection at ${this.url}`)
@@ -62,7 +82,28 @@ export abstract class SbWebSocket {
         return this.handleMessage(parsed.uuid, parsed as AtleastUUID, data)
       }
     })
+
+    this.ws.on('close', (code, reason) => {
+      debug(
+        `WS connection closed. Code: ${code} (${WS_CODES[code] || 'Unknown code'}). ${reason ? 'Reason:' + reason : ''}`
+      )
+
+      const closePromiseResolver = this.closePromiseResolver
+      if (closePromiseResolver) {
+        debug('Resolving close promise')
+        closePromiseResolver()
+      }
+    })
   }
 
   protected abstract async handleMessage(uuid: string, parsed: AtleastUUID, data: WebSocket.Data): Promise<any>
+}
+
+const WS_CODES: { [code: number]: string | undefined } = {
+  1000: 'Successful operation / regular socket shutdown',
+  1006: 'No close code frame has been receieved',
+}
+
+const WS_CODENAMES = {
+  CLOSE_NORMAL: 1000,
 }
