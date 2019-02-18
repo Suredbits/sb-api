@@ -23,7 +23,10 @@ class CLightningImpl implements LightningApi {
 
   public receive = (description: string = ''): Promise<string> => {
     const uniqueLabel = uuid() // c-lightning requires all invoice labels to be unique
+
+    // c-lightning expects the string 'any' to make an invoice without amount specified
     const amountMsat = 'any'
+
     return this.client.invoice(amountMsat, uniqueLabel, description).then(({ bolt11 }) => bolt11)
   }
 
