@@ -7,8 +7,8 @@ import { MockLnClient } from '../mock.ln.client'
 const sockets: ExchangeSocket[] = []
 let socket: ExchangeSocket = null as any
 
-const JEST_TIMEOUT = 10 * 1000 // 10 seconds
-const SUB_DURATION = Math.floor(JEST_TIMEOUT / 3)
+const JEST_TIMEOUT = 20 * 1000 // 20 seconds
+const SUB_DURATION = Math.floor(JEST_TIMEOUT / 6)
 
 beforeAll(async () => {
   jest.setTimeout(JEST_TIMEOUT)
@@ -21,12 +21,12 @@ afterAll(async () => {
   return Promise.all(sockets.map(s => s.close()))
 })
 
-const testHelper = <C extends ExchangeChannel<E>, E extends Exchange>(
+const testHelper = async <C extends ExchangeChannel<E>, E extends Exchange>(
   channel: C,
   exchange: E,
   symbol: ExchangeSymbols<E>
 ) => {
-  return new Promise(resolve => {
+  await new Promise(resolve => {
     socket[channel]({
       exchange,
       symbol,
@@ -38,6 +38,9 @@ const testHelper = <C extends ExchangeChannel<E>, E extends Exchange>(
       },
     })
   })
+  // wait for a bit at the end, to give time for UUIDs to get
+  // cleared on server
+  return new Promise(resolve => setTimeout(resolve, 1500))
 }
 
 describe('Exchange API socket', () => {
