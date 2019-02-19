@@ -91,7 +91,6 @@ abstract class ExchangeSocketBase extends SbWebSocket {
   }
 
   protected handleMessage = async (uuid: string, parsed: AtleastUUID, wsData: WebSocket.Data) => {
-    debug('Received message in exchange socket %O', parsed)
     if (MessageTypes.isInvoice(parsed)) {
       debug(`Got invoice for request with UUID ${uuid}`)
 

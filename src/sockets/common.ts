@@ -69,7 +69,6 @@ export abstract class SbWebSocket {
 
     this.ws.on('message', async data => {
       const parsed: MaybeUUID = JSON.parse(data.toString())
-      debug('Parsed message: %O', parsed)
       debug(`Received message with fields: ${Object.getOwnPropertyNames(parsed).join(', ')}`)
       if (MessageTypes.isInitMsg(parsed)) {
         debug('Message is welcome message')
