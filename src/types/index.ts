@@ -29,6 +29,12 @@ interface ValidateSnapshotResult {
 
 type OnError = (err: any) => any
 
+/**
+ * How many errors we're maximally going to report
+ * and print
+ */
+const NUM_ERRORS = 5
+
 export class DataValidationError extends Error {
   constructor(msg: string) {
     super(msg)
@@ -49,8 +55,17 @@ const validate = (data: any[] | object, type: t.Type<any>, onError: OnError) => 
   const decodedE = type.decode(data)
   const decoded = decodedE.getOrElseL(() => {
     const paths = PathReporter.report(decodedE)
-    debug('Got errors while validating a %s: %O', type.name, paths)
-    const pathsStr = paths.join('\n')
+    debug('Got errors while validating a %s!', type.name)
+    let pathsStr: string
+    if (paths.length <= NUM_ERRORS) {
+      const joinedPaths = paths.join('\n')
+      debug('%s', joinedPaths)
+      pathsStr = joinedPaths
+    } else {
+      const firstErrors = `First ${NUM_ERRORS}: ${paths.slice(0, NUM_ERRORS).join('\n')}`
+      debug('%s', firstErrors)
+      pathsStr = `${paths.length} errors. ${firstErrors}`
+    }
     return onError(new DataValidationError(pathsStr))
   })
   debug(`Validation of ${type.name} OK`)
@@ -85,7 +100,7 @@ export const Validate = {
       debug(`Data is array with ${data.length} elements`)
       const firstElem = data[0]
       if (firstElem) {
-        debug('First elemeht: %O', firstElem)
+        debug('First element: %O', firstElem)
       }
     }
     if (!uuid) {
