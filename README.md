@@ -1,4 +1,5 @@
 [![npm version](https://badge.fury.io/js/sb-api.svg)](https://badge.fury.io/js/sb-api)
+[![Build Status](https://travis-ci.org/Suredbits/sb-api.svg?branch=master)](https://travis-ci.org/Suredbits/sb-api)
 
 <!-- h1 instead of # to avoid TOC including header -->
 <h1>JS/TS client library for Suredbits APIs</h1>
