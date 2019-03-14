@@ -37,7 +37,14 @@ const BitstampSpotBookFields = t.intersection([
   }),
 ])
 
-const BinanceSpotBookFields = (t.never as any) as t.Type<any>
+const BinanceSpotBookFields = t.intersection([
+  CommonSpotBookFields,
+  t.type({
+    eventTime: t.Integer,
+    quantityTotal: t.number,
+    symbol: ExchangeSymbols.binance,
+  }),
+])
 
 export const ExchangeSpotBooksTypes = {
   bitfinex: {
