@@ -1,5 +1,3 @@
-import makeDebug from 'debug'
-
 import { CLightning } from '../../src/lightning/clightning'
 
 let client: CLightning = null as any // will get set in first test

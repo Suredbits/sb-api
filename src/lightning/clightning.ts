@@ -9,7 +9,7 @@ import uuid from 'uuid'
 
 import { LightningApi } from '.'
 
-const debug = makeDebug('lightning:clightning')
+const debug = makeDebug('sb-api:lightning:clightning')
 const lstat = util.promisify(fsCb.lstat)
 
 export interface CLightning extends LightningApi {}

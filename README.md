@@ -111,16 +111,16 @@ We recommend using TypeScript with this library. It has excellent type support b
 
 ## Debug logging
 
-This library uses the [`debug`](https://www.npmjs.com/package/debug) module for logging what's going on. `debug` logs using what it calls namespaces. This library logs under the following namespace:
+This library uses the [`debug`](https://www.npmjs.com/package/debug) module for logging what's going on. `debug` logs using what it calls namespaces. This library logs under the following namespaces:
 
-- `lightning:lnd` - LND related functionality
-- `lightning:eclair` - Eclair related functionality
-- `lightning:clightning` - `c-lightning` related functionality
-- `socket:base` - functionality common for all sockets
-- `socket:ppc` - functionality common for pay-per-call sockets (NBA & NFL)
-- `socket:exchange` - crypto market data logging
-- `validation` - logs the validation of incoming data from the API
+- `sb-abi:lightning:lnd` - LND related functionality
+- `sb-api:lightning:eclair` - Eclair related functionality
+- `sb-api:lightning:clightning` - `c-lightning` related functionality
+- `sb-api:socket:base` - functionality common for all sockets
+- `sb-api:socket:ppc` - functionality common for pay-per-call sockets (NBA & NFL)
+- `sb-api:socket:exchange` - crypto market data logging
+- `sb-api:validation` - logs the validation of incoming data from the API
 
-To activate logging output for a given namespace you need to set the `DEBUG` environment variable. Namespaces are hierarchically organized with `:` as the level separator. It's possible to specify multiple namespaces by comma-separating them. `DEBUG=*` causes all namespaces to get logged. Setting `DEBUG` to `socket:*` activates the `socket:base`, `socket:ppc` and `socket:exchange` namespaces.
+To activate logging output for a given namespace you need to set the `DEBUG` environment variable. Namespaces are hierarchically organized with `:` as the level separator. It's possible to specify multiple namespaces by comma-separating them. `DEBUG=sb-api:*` causes all namespaces to get logged. Setting `DEBUG` to `sb-api:socket:*` activates the `sb-api:socket:base`, `sb-api:socket:ppc` and `sb-api:socket:exchange` namespaces.
 
-`DEBUG=lightning:*,socket:base,socket:ppc` would enabling logging of all Lightning activity, the functionality common for all sockets and the functionality common for pay-per-call sockets (NBA & NFL).
+`DEBUG=sb-api:lightning:*,sb-api:socket:base,sb-api:socket:ppc` would enable logging of all Lightning activity, the functionality common for all sockets and the functionality common for pay-per-call sockets (NBA & NFL).
