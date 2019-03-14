@@ -1,8 +1,9 @@
 import { Sockets } from '../../src/sockets'
 import { ExchangeChannel, ExchangeSpotSocket } from '../../src/sockets/crypto/spot'
-import { ExchangeSymbol, ExchangeSymbols } from '../../src/types/exchange/common/symbols'
+import { ExchangeSymbols } from '../../src/types/exchange/common/symbols'
 import { SpotExchange } from '../../src/types/exchange/spot'
 import { MockLnClient } from '../mock.ln.client'
+import { testDebug } from '../test.util'
 
 const sockets: ExchangeSpotSocket[] = []
 let socket: ExchangeSpotSocket = null as any
@@ -12,12 +13,16 @@ const SUB_DURATION = Math.floor(JEST_TIMEOUT / 6)
 
 beforeAll(async () => {
   jest.setTimeout(JEST_TIMEOUT)
+  testDebug('Requesting exchange socket')
   const s = await Sockets.exchange(MockLnClient)
+  testDebug('Got exchange socket!')
   socket = s
   sockets.push(s)
+  testDebug('beforeAll complete')
 })
 
 afterAll(async () => {
+  testDebug('Closing exchange sockets')
   return Promise.all(sockets.map(s => s.close()))
 })
 

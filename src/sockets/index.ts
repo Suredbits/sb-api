@@ -1,3 +1,5 @@
+import makeDebug from 'debug'
+
 import { BitcoinNetwork, LightningApi } from '../lightning'
 import { WelcomeMessageType } from '../types'
 import { SbWebSocket } from './common'
@@ -5,6 +7,8 @@ import { API } from './common'
 import { ExchangeSpotSocket, ExchangeSpotSocketTestnet } from './crypto/spot'
 import { NbaSocket, NbaSocketTestnet } from './nba'
 import { NflSocket, NflSocketTestnet } from './nfl'
+
+const debug = makeDebug('sb-api:socket:base')
 
 export const Sockets = {
   exchange: (ln: LightningApi): Promise<ExchangeSpotSocket> =>
@@ -24,7 +28,8 @@ export const Sockets = {
     makeSbWebSocket(API.NBA, ln, BitcoinNetwork.testnet) as any,
 }
 
-const makeSbWebSocket = async (api: API, eclair: LightningApi, network: BitcoinNetwork): Promise<SbWebSocket> => {
+const makeSbWebSocket = async (api: API, ln: LightningApi, network: BitcoinNetwork): Promise<SbWebSocket> => {
+  debug(`Making websocket for ${api} API on ${network}`)
   let clazz:
     | typeof NbaSocket
     | typeof NbaSocketTestnet
@@ -55,7 +60,11 @@ const makeSbWebSocket = async (api: API, eclair: LightningApi, network: BitcoinN
   // this is hacky
   let socket: SbWebSocket = null as any
   const welcomeMsg = await new Promise<WelcomeMessageType>(resolve => {
-    socket = new clazz(eclair, msg => resolve(msg))
+    socket = new clazz(ln, msg => {
+      debug('Received welcome message!')
+      resolve(msg)
+    })
   })
+  debug(`Made socket for ${api} on ${network}`)
   return socket
 }
