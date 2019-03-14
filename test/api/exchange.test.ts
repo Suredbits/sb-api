@@ -26,7 +26,7 @@ afterAll(async () => {
   return Promise.all(sockets.map(s => s.close()))
 })
 
-const testHelper = async <C extends ExchangeChannel<E>, E extends SpotExchange>(
+const testHelper = async <C extends ExchangeChannel, E extends SpotExchange>(
   channel: C,
   exchange: E,
   symbol: ExchangeSymbols<E>
@@ -58,7 +58,8 @@ describe('Exchange API socket', () => {
     it('must subscrbe to tickers', async () => testHelper('tickers', 'bitfinex', 'ETHUSD'))
   })
 
-  describe('Binance', () => {
+  describe.only('Binance', () => {
+    it.only('must subscribe to books', async () => testHelper('books', 'binance', 'BTCUSDT'))
     it('must subscribe to trades', async () => testHelper('trades', 'binance', 'ETHBTC'))
     it('must subscribe to tickers', async () => testHelper('tickers', 'binance', 'ETHUSDT'))
   })

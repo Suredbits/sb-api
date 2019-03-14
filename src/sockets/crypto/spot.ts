@@ -11,13 +11,12 @@ import { UUID } from '../../uuid'
 import { API } from '../common'
 import { AtleastUUID, OnWsOpen, SbWebSocket } from '../common'
 
-export type ExchangeChannel<E extends SpotExchange> = E extends 'binance' ? BinanceChannels : Channels
-type BinanceChannels = 'tickers' | 'trades'
+export type ExchangeChannel = Channels
 type Channels = 'tickers' | 'trades' | 'books'
 
 const debug = makeDebug('sb-api:socket:exchange')
 
-interface SubScribeArgs<E extends SpotExchange, C extends ExchangeChannel<E>> {
+interface SubScribeArgs<E extends SpotExchange, C extends ExchangeChannel> {
   /**
    * Which exchange to subscribe to
    */
@@ -160,7 +159,7 @@ abstract class ExchangeSocketBase extends SbWebSocket {
     // TODO something else here
   }
 
-  protected subscribe = async <E extends SpotExchange, C extends ExchangeChannel<E>>({
+  protected subscribe = async <E extends SpotExchange, C extends ExchangeChannel>({
     symbol,
     refundInvoice,
     channel,
@@ -169,10 +168,7 @@ abstract class ExchangeSocketBase extends SbWebSocket {
     onSnapshot,
     onSubscriptionEnded,
     duration,
-  }: SubScribeArgs<E, C>): Promise<C extends 'books' ? (E extends 'binance' ? never : Subscription) : Subscription> => {
-    if (channel === 'books' && exchange === 'binance') {
-      throw TypeError("The 'books' channel is not supported for Binance")
-    }
+  }: SubScribeArgs<E, C>): Promise<Subscription> => {
     // If user hasn't supplied invoice, we generate one
     if (!refundInvoice) {
       refundInvoice = await this.ln.receive()
@@ -200,7 +196,7 @@ abstract class ExchangeSocketBase extends SbWebSocket {
         dataType: types.data,
         onSnapshot,
         onData,
-        onSubscriptionEnded,
+        onSubscriptionEnded: onSubscriptionEnded as any,
         datapoints: [],
         refundInvoice: req.refundInvoice,
       }
@@ -273,19 +269,19 @@ export class ExchangeSpotSocketTestnet extends ExchangeSocketBase {
   }
 }
 
-type Trades<E extends SpotExchange> = NoChannel<SubScribeArgs<E, E extends 'binance' ? 'trades' : 'trades'>>
-type Tickers<E extends SpotExchange> = NoChannel<SubScribeArgs<E, E extends 'binance' ? 'tickers' : 'tickers'>>
-type Books<E extends SpotExchange> = NoChannel<SubScribeArgs<E, E extends 'binance' ? never : 'books'>>
+type Trades<E extends SpotExchange> = NoChannel<SubScribeArgs<E, 'trades'>>
+type Tickers<E extends SpotExchange> = NoChannel<SubScribeArgs<E, 'tickers'>>
+type Books<E extends SpotExchange> = NoChannel<SubScribeArgs<E, 'books'>>
 type NoChannel<T> = Omit<T, 'channel'>
 type TestnetArgs<T> = Omit<T, 'symbol'>
 
 interface ActiveSubscription<T extends t.Type<any>> {
   activated: boolean
   snapshotType: t.Type<any>
-  dataType: T
+  dataType: t.TypeOf<T>
   onSnapshot: (data: any) => any
   onData: (data: any) => any
-  onSubscriptionEnded?: (datapoits: Array<Datapoint<T>>) => any
+  onSubscriptionEnded?: (datapoints: Array<Datapoint<T>>) => any
   datapoints: Array<Datapoint<T>>
   refundInvoice: string
 }
