@@ -4,11 +4,11 @@ import * as types from 'io-ts-types'
 import { PathReporter } from 'io-ts/lib/PathReporter'
 import WebSocket from 'ws'
 
-import { Exchange } from './exchange'
-import { ALL_BOOKS_DATA_TYPES } from './exchange/books'
-import { ExchangeSymbol } from './exchange/symbols'
-import { ALL_TICKERS_DATA_TYPES } from './exchange/tickers'
-import { ALL_TRADES_DATA_TYPES } from './exchange/trades'
+import { ExchangeSymbol } from './exchange/common/symbols'
+import { SpotExchange } from './exchange/spot'
+import { ALL_SPOT_BOOKS_DATA_TYPES } from './exchange/spot/books'
+import { ALL_SPOT_TICKERS_DATA_TYPES } from './exchange/spot/tickers'
+import { ALL_SPOT_TRADES_DATA_TYPES } from './exchange/spot/trades'
 import { NbaTypes } from './nba'
 import { NflTypes } from './nfl'
 
@@ -125,7 +125,7 @@ export interface PpcDataMessageType {
 const PAYMENT_RECEIVED = 'payment received'
 interface PaymentReceivedMessage {
   uuid: string
-  exchange: Exchange
+  exchange: SpotExchange
   symbol: ExchangeSymbol
   duration: number
   event: typeof PAYMENT_RECEIVED
@@ -153,9 +153,9 @@ export interface ExchangeDataMessageType {
 const ALL_PPC_DATA_RESPONSE_TYPES: Array<t.Type<any>> = [...NflTypes.ALL_NFL_TYPES, ...NbaTypes.ALL_NBA_TYPES]
 
 const ALL_EXCHANGE_DATA_RESPONSE_TYPES: Array<t.Type<any>> = [
-  ...ALL_BOOKS_DATA_TYPES,
-  ...ALL_TICKERS_DATA_TYPES,
-  ...ALL_TRADES_DATA_TYPES,
+  ...ALL_SPOT_BOOKS_DATA_TYPES,
+  ...ALL_SPOT_TICKERS_DATA_TYPES,
+  ...ALL_SPOT_TRADES_DATA_TYPES,
 ]
 
 export class MessageTypes {

@@ -10,7 +10,7 @@ export type OnWsOpen = (msg: WelcomeMessageType) => any
 export const enum API {
   NFL = 'nfl',
   NBA = 'nba',
-  crypto = 'crypto',
+  spot = 'spot',
 }
 
 export interface AtleastUUID {
@@ -55,7 +55,7 @@ export abstract class SbWebSocket {
       return prefix + '/nfl/v0'
     } else if (this.api === API.NBA) {
       return prefix + '/nba/v0'
-    } else if (this.api === API.crypto) {
+    } else if (this.api === API.spot) {
       return prefix + '/exchange/v0'
     } else {
       return assertNever(this.api)
