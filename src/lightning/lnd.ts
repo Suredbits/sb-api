@@ -3,7 +3,7 @@ import lnd, { ConnectArgs, LndClient } from 'lnd-async'
 
 import { LightningApi } from '.'
 
-const debug = makeDebug('lightning:lnd')
+const debug = makeDebug('sb-api:lightning:lnd')
 
 export interface Lnd extends LightningApi {}
 

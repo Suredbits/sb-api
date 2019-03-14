@@ -15,7 +15,7 @@ export type ExchangeChannel<E extends Exchange> = E extends 'binance' ? BinanceC
 type BinanceChannels = 'tickers' | 'trades'
 type Channels = 'tickers' | 'trades' | 'books'
 
-const debug = makeDebug('socket:exchange')
+const debug = makeDebug('sb-api:socket:exchange')
 
 interface SubScribeArgs<E extends Exchange, C extends ExchangeChannel<E>> {
   /**

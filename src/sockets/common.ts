@@ -19,7 +19,7 @@ export interface AtleastUUID {
 
 export type MaybeUUID = Partial<AtleastUUID>
 
-const debug = makeDebug('socket:base')
+const debug = makeDebug('sb-api:socket:base')
 
 type PromiseResolver = () => void
 

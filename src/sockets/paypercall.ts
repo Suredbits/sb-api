@@ -6,7 +6,7 @@ import { MessageTypes, PpcDataMessageType, Validate } from '../types'
 import { UUID } from '../uuid'
 import { AtleastUUID, SbWebSocket } from './common'
 
-const debug = makeDebug('socket:ppc')
+const debug = makeDebug('sb-api:socket:ppc')
 
 export abstract class PayPerCallSocket extends SbWebSocket {
   protected sendRequest = (request: object, type: t.Type<any>, requestType?: string): Promise<any> => {

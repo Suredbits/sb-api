@@ -3,7 +3,7 @@ import request from 'request-promise-native'
 
 import { LightningApi } from '.'
 
-const debug = makeDebug('lightning:eclair')
+const debug = makeDebug('sb-api:lightning:eclair')
 
 interface EclairArgs {
   /**

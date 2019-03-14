@@ -12,7 +12,7 @@ import { ALL_TRADES_DATA_TYPES } from './exchange/trades'
 import { NbaTypes } from './nba'
 import { NflTypes } from './nfl'
 
-const debug = makeDebug('validation')
+const debug = makeDebug('sb-api:validation')
 
 export type SeasonPhase = 'Preseason' | 'Regular' | 'Postseason'
 export type StatType = 'passing' | 'rushing' | 'receiving' | 'defense'
