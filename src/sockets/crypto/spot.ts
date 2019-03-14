@@ -2,22 +2,22 @@ import makeDebug from 'debug'
 import * as t from 'io-ts'
 import WebSocket from 'ws'
 
-import { BitcoinNetwork, LightningApi } from '../lightning'
-import { MessageTypes, Validate } from '../types'
-import { Exchange, ExchangeTypes } from '../types/exchange'
-import { ExchangeSymbols } from '../types/exchange/symbols'
-import { Omit } from '../types/util'
-import { UUID } from '../uuid'
-import { API } from './common'
-import { AtleastUUID, OnWsOpen, SbWebSocket } from './common'
+import { BitcoinNetwork, LightningApi } from '../../lightning'
+import { MessageTypes, Validate } from '../../types'
+import { ExchangeSymbols } from '../../types/exchange/common/symbols'
+import { ExchangeSpotTypes, SpotExchange } from '../../types/exchange/spot'
+import { Omit } from '../../types/util'
+import { UUID } from '../../uuid'
+import { API } from '../common'
+import { AtleastUUID, OnWsOpen, SbWebSocket } from '../common'
 
-export type ExchangeChannel<E extends Exchange> = E extends 'binance' ? BinanceChannels : Channels
+export type ExchangeChannel<E extends SpotExchange> = E extends 'binance' ? BinanceChannels : Channels
 type BinanceChannels = 'tickers' | 'trades'
 type Channels = 'tickers' | 'trades' | 'books'
 
 const debug = makeDebug('sb-api:socket:exchange')
 
-interface SubScribeArgs<E extends Exchange, C extends ExchangeChannel<E>> {
+interface SubScribeArgs<E extends SpotExchange, C extends ExchangeChannel<E>> {
   /**
    * Which exchange to subscribe to
    */
@@ -51,19 +51,19 @@ interface SubScribeArgs<E extends Exchange, C extends ExchangeChannel<E>> {
    * keep your view of the book in sync with what's happening
    * on the exchange.
    */
-  onSnapshot: (snapshot: ExchangeTypes.Snapshot<C, E>) => any
+  onSnapshot: (snapshot: ExchangeSpotTypes.SpotSnapshot<C, E>) => any
 
   /**
    * Callback that gets executed when a data point is received.
    */
-  onData: (data: ExchangeTypes.Data<C, E>) => any
+  onData: (data: ExchangeSpotTypes.Data<C, E>) => any
 
   /**
    * Callback that gets executed when a subscription is ended.
    * The argument that gets passed into this function is a list
    * of all previously collected data points.
    */
-  onSubscriptionEnded?: (datapoint: Array<ExchangeTypes.Data<C, E>>) => any
+  onSubscriptionEnded?: (datapoint: Array<ExchangeSpotTypes.Data<C, E>>) => any
 }
 
 interface Subscription {
@@ -73,7 +73,7 @@ interface Subscription {
 
 abstract class ExchangeSocketBase extends SbWebSocket {
   constructor(protected ln: LightningApi, network: BitcoinNetwork, onOpen: OnWsOpen) {
-    super(API.crypto, ln, onOpen, network)
+    super(API.spot, ln, onOpen, network)
   }
 
   private handleRefill = async (addedDuration: number, uuid: string): Promise<any> => {
@@ -160,7 +160,7 @@ abstract class ExchangeSocketBase extends SbWebSocket {
     // TODO something else here
   }
 
-  protected subscribe = async <E extends Exchange, C extends ExchangeChannel<E>>({
+  protected subscribe = async <E extends SpotExchange, C extends ExchangeChannel<E>>({
     symbol,
     refundInvoice,
     channel,
@@ -192,7 +192,7 @@ abstract class ExchangeSocketBase extends SbWebSocket {
     debug('Request: %O', req) // TODO set to debug
 
     return new Promise<Subscription>((resolve, reject) => {
-      const types = ExchangeTypes.DataTypes[req.channel][req.exchange]
+      const types = ExchangeSpotTypes.DataTypes[req.channel][req.exchange]
 
       this.subscriptions[req.uuid] = {
         activated: false,
@@ -217,30 +217,30 @@ abstract class ExchangeSocketBase extends SbWebSocket {
   } = {}
 }
 
-export class ExchangeSocket extends ExchangeSocketBase {
+export class ExchangeSpotSocket extends ExchangeSocketBase {
   constructor(protected ln: LightningApi, onOpen: OnWsOpen) {
     super(ln, BitcoinNetwork.mainnet, onOpen)
   }
 
-  public tickers = <E extends Exchange>(args: Tickers<E>): Promise<Subscription> =>
+  public tickers = <E extends SpotExchange>(args: Tickers<E>): Promise<Subscription> =>
     this.subscribe({ channel: 'tickers' as any, ...args })
 
-  public books = <E extends Exchange>(args: Books<E>): Promise<Subscription> =>
+  public books = <E extends SpotExchange>(args: Books<E>): Promise<Subscription> =>
     this.subscribe({ channel: 'books' as any, ...args })
 
-  public trades = <E extends Exchange>(args: Trades<E>): Promise<Subscription> =>
+  public trades = <E extends SpotExchange>(args: Trades<E>): Promise<Subscription> =>
     this.subscribe({ channel: 'trades' as any, ...args })
 }
 
 /**
  *
  */
-export class ExchangeSocketTestnet extends ExchangeSocketBase {
+export class ExchangeSpotSocketTestnet extends ExchangeSocketBase {
   constructor(protected ln: LightningApi, onOpen: OnWsOpen) {
     super(ln, BitcoinNetwork.testnet, onOpen)
   }
 
-  private getSymbol = <E extends Exchange>(exchange: E): ExchangeSymbols<E> => {
+  private getSymbol = <E extends SpotExchange>(exchange: E): ExchangeSymbols<E> => {
     if (exchange === 'binance') {
       return 'BCTUSDT' as any
     } else {
@@ -248,7 +248,7 @@ export class ExchangeSocketTestnet extends ExchangeSocketBase {
     }
   }
 
-  public tickers = <E extends Exchange>(args: TestnetArgs<Tickers<E>>): Promise<Subscription> => {
+  public tickers = <E extends SpotExchange>(args: TestnetArgs<Tickers<E>>): Promise<Subscription> => {
     return this.subscribe({
       channel: 'tickers' as any,
       symbol: this.getSymbol(args.exchange),
@@ -256,7 +256,7 @@ export class ExchangeSocketTestnet extends ExchangeSocketBase {
     })
   }
 
-  public books = <E extends Exchange>(args: TestnetArgs<Books<E>>): Promise<Subscription> => {
+  public books = <E extends SpotExchange>(args: TestnetArgs<Books<E>>): Promise<Subscription> => {
     return this.subscribe({
       channel: 'books' as any,
       symbol: this.getSymbol(args.exchange),
@@ -264,7 +264,7 @@ export class ExchangeSocketTestnet extends ExchangeSocketBase {
     })
   }
 
-  public trades = <E extends Exchange>(args: TestnetArgs<Trades<E>>): Promise<Subscription> => {
+  public trades = <E extends SpotExchange>(args: TestnetArgs<Trades<E>>): Promise<Subscription> => {
     return this.subscribe({
       channel: 'trades' as any,
       symbol: this.getSymbol(args.exchange),
@@ -273,9 +273,9 @@ export class ExchangeSocketTestnet extends ExchangeSocketBase {
   }
 }
 
-type Trades<E extends Exchange> = NoChannel<SubScribeArgs<E, E extends 'binance' ? 'trades' : 'trades'>>
-type Tickers<E extends Exchange> = NoChannel<SubScribeArgs<E, E extends 'binance' ? 'tickers' : 'tickers'>>
-type Books<E extends Exchange> = NoChannel<SubScribeArgs<E, E extends 'binance' ? never : 'books'>>
+type Trades<E extends SpotExchange> = NoChannel<SubScribeArgs<E, E extends 'binance' ? 'trades' : 'trades'>>
+type Tickers<E extends SpotExchange> = NoChannel<SubScribeArgs<E, E extends 'binance' ? 'tickers' : 'tickers'>>
+type Books<E extends SpotExchange> = NoChannel<SubScribeArgs<E, E extends 'binance' ? never : 'books'>>
 type NoChannel<T> = Omit<T, 'channel'>
 type TestnetArgs<T> = Omit<T, 'symbol'>
 

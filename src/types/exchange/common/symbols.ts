@@ -1,5 +1,5 @@
 import * as t from 'io-ts'
-import { Exchange } from '.'
+import { SpotExchange } from '../spot'
 
 const BinanceSymbols = t.keyof({
   BTCUSDT: t.null,
@@ -45,7 +45,7 @@ export type ExchangeSymbol =
   | ExchangeSymbols<'bitstamp'>
   | ExchangeSymbols<'coinbase'>
 
-export type ExchangeSymbols<T extends Exchange> = T extends 'binance'
+export type ExchangeSymbols<T extends SpotExchange> = T extends 'binance'
   ? BinanceSymbols
   : T extends 'bitfinex'
   ? BitfinexSymbols

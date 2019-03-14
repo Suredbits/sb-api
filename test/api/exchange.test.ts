@@ -1,11 +1,11 @@
 import { Sockets } from '../../src/sockets'
-import { ExchangeChannel, ExchangeSocket } from '../../src/sockets/crypto'
-import { Exchange } from '../../src/types/exchange'
-import { ExchangeSymbol, ExchangeSymbols } from '../../src/types/exchange/symbols'
+import { ExchangeChannel, ExchangeSpotSocket } from '../../src/sockets/crypto/spot'
+import { ExchangeSymbol, ExchangeSymbols } from '../../src/types/exchange/common/symbols'
+import { SpotExchange } from '../../src/types/exchange/spot'
 import { MockLnClient } from '../mock.ln.client'
 
-const sockets: ExchangeSocket[] = []
-let socket: ExchangeSocket = null as any
+const sockets: ExchangeSpotSocket[] = []
+let socket: ExchangeSpotSocket = null as any
 
 const JEST_TIMEOUT = 20 * 1000 // 20 seconds
 const SUB_DURATION = Math.floor(JEST_TIMEOUT / 6)
@@ -21,12 +21,15 @@ afterAll(async () => {
   return Promise.all(sockets.map(s => s.close()))
 })
 
-const testHelper = async <C extends ExchangeChannel<E>, E extends Exchange>(
+const testHelper = async <C extends ExchangeChannel<E>, E extends SpotExchange>(
   channel: C,
   exchange: E,
   symbol: ExchangeSymbols<E>
 ) => {
-  await new Promise(resolve => {
+  await new Promise((resolve, reject) => {
+    if (!socket) {
+      return reject('socket is null!')
+    }
     socket[channel]({
       exchange,
       symbol,
