@@ -1,7 +1,6 @@
 import * as t from 'io-ts'
 
 const CommonSpotExchangeTradeFields = t.type({
-  tradeId: t.number,
   price: t.number,
   quantity: t.number,
 })
@@ -9,22 +8,25 @@ const CommonSpotExchangeTradeFields = t.type({
 const CoinbaseSpotTradeFields = t.intersection([
   CommonSpotExchangeTradeFields,
   t.type({
-    symbol: t.string,
     buyerId: t.string,
-    sellerId: t.string,
-    tradeTime: t.Integer,
     marketMaker: t.boolean,
+    sellerId: t.string,
+    symbol: t.string,
+    tradeId: t.number,
+    tradeTime: t.Integer,
   }),
 ])
 
 const BinanceSpotTradeFields = t.intersection([
   CommonSpotExchangeTradeFields,
   t.type({
-    eventTime: t.Integer,
     buyerId: t.string,
-    sellerId: t.string,
-    tradeTime: t.Integer,
+    eventTime: t.Integer,
     marketMaker: t.boolean,
+    sellerId: t.string,
+    symbol: t.string,
+    tradeId: t.number,
+    tradeTime: t.Integer,
   }),
 ])
 
@@ -32,14 +34,16 @@ const BitfinexSpotTradeFields = t.intersection([
   CommonSpotExchangeTradeFields,
   t.type({
     eventTime: t.Integer,
+    tradeId: t.number,
   }),
 ])
 
 const GeminiSpotTradeFields = t.intersection([
   CommonSpotExchangeTradeFields,
   t.type({
-    tradeTime: t.Integer,
     marketMaker: t.boolean,
+    tradeId: t.number,
+    tradeTime: t.Integer,
   }),
 ])
 
@@ -47,8 +51,19 @@ const BitstampSpotTradeFields = t.intersection([
   CommonSpotExchangeTradeFields,
   t.type({
     buyerId: t.string,
-    sellerId: t.string,
     marketMaker: t.boolean,
+    sellerId: t.string,
+    tradeId: t.number,
+  }),
+])
+
+const KrakenSpotTradeFields = t.intersection([
+  CommonSpotExchangeTradeFields,
+  t.type({
+    eventTime: t.Integer,
+    marketMaker: t.boolean,
+    symbol: t.string,
+    tradeTime: t.Integer,
   }),
 ])
 
@@ -73,6 +88,10 @@ export const ExchangeSpotTradesTypes = {
     data: t.refinement(BitstampSpotTradeFields, () => true, 'BitstampSpotTradesDataType'),
     snapshot: t.array(BitstampSpotTradeFields, 'BitstampSpotTradesSnapshotType'),
   },
+  kraken: {
+    data: t.refinement(KrakenSpotTradeFields, () => true, 'KrakenSpotTradesDataType'),
+    snapshot: t.array(KrakenSpotTradeFields, 'KrakenSpotTradesSnapshotType'),
+  },
 }
 
 export const ALL_SPOT_TRADES_DATA_TYPES = [
@@ -81,14 +100,5 @@ export const ALL_SPOT_TRADES_DATA_TYPES = [
   ExchangeSpotTradesTypes.coinbase.data,
   ExchangeSpotTradesTypes.gemini.data,
   ExchangeSpotTradesTypes.bitstamp.data,
+  ExchangeSpotTradesTypes.kraken.data,
 ]
-
-const ALL_SPOT_TRADES_SNAPSHOT_TYPES = [
-  ExchangeSpotTradesTypes.bitfinex.snapshot,
-  ExchangeSpotTradesTypes.binance.snapshot,
-  ExchangeSpotTradesTypes.coinbase.snapshot,
-  ExchangeSpotTradesTypes.bitstamp.snapshot,
-  ExchangeSpotTradesTypes.gemini.snapshot,
-]
-
-export const ALL_SPOT_EXCHANGE_TRADES_TYPES = [...ALL_SPOT_TRADES_DATA_TYPES, ...ALL_SPOT_TRADES_SNAPSHOT_TYPES]

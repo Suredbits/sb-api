@@ -46,6 +46,8 @@ const BinanceSpotBookFields = t.intersection([
   }),
 ])
 
+const KrakenSpotBookFields = (t.never as any) as t.Type<any>
+
 export const ExchangeSpotBooksTypes = {
   bitfinex: {
     data: t.refinement(BitfinexSpotBookFields, () => true, 'BitfinexSpotBooksDataType'),
@@ -67,6 +69,10 @@ export const ExchangeSpotBooksTypes = {
     data: t.refinement(BitstampSpotBookFields, () => true, 'BitstampSpotBookDataType'),
     snapshot: t.array(BitstampSpotBookFields, 'BitstampSpotBookSnapshotType'),
   },
+  kraken: {
+    data: t.refinement(KrakenSpotBookFields, () => true, 'KrakenSpotBooksDataType'),
+    snapshot: t.array(KrakenSpotBookFields, 'KrakenSpotBooksSnapshotType'),
+  },
 }
 
 export const ALL_SPOT_BOOKS_DATA_TYPES = [
@@ -75,14 +81,5 @@ export const ALL_SPOT_BOOKS_DATA_TYPES = [
   ExchangeSpotBooksTypes.binance.data,
   ExchangeSpotBooksTypes.gemini.data,
   ExchangeSpotBooksTypes.bitstamp.data,
+  ExchangeSpotBooksTypes.kraken.data,
 ]
-
-const ALL_SPOT_TICKERS_SNAPSHOT_TYPES = [
-  ExchangeSpotBooksTypes.bitfinex.snapshot,
-  ExchangeSpotBooksTypes.coinbase.snapshot,
-  ExchangeSpotBooksTypes.binance.snapshot,
-  ExchangeSpotBooksTypes.gemini.snapshot,
-  ExchangeSpotBooksTypes.bitstamp.snapshot,
-]
-
-export const ALL_SPOT_EXCHANGE_BOOKS_TYPES = [...ALL_SPOT_TICKERS_SNAPSHOT_TYPES, ...ALL_SPOT_BOOKS_DATA_TYPES]

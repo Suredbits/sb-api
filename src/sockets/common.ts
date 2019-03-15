@@ -11,6 +11,7 @@ export const enum API {
   NFL = 'nfl',
   NBA = 'nba',
   spot = 'spot',
+  futures = 'futures',
 }
 
 export interface AtleastUUID {
@@ -57,6 +58,8 @@ export abstract class SbWebSocket {
       return prefix + '/nba/v0'
     } else if (this.api === API.spot) {
       return prefix + '/exchange/v0'
+    } else if (this.api === API.futures) {
+      return prefix + '/futures/v0'
     } else {
       return assertNever(this.api)
     }

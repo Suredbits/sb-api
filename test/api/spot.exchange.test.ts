@@ -1,6 +1,7 @@
 import { Sockets } from '../../src/sockets'
-import { ExchangeChannel, ExchangeSpotSocket } from '../../src/sockets/crypto/spot'
-import { ExchangeSymbols } from '../../src/types/exchange/common/symbols'
+import { ExchangeChannel } from '../../src/sockets/crypto/common'
+import { ExchangeSpotSocket } from '../../src/sockets/crypto/spot'
+import { SpotExchangeSymbols } from '../../src/types/exchange/common/symbols'
 import { SpotExchange } from '../../src/types/exchange/spot'
 import { MockLnClient } from '../mock.ln.client'
 import { testDebug } from '../test.util'
@@ -13,27 +14,27 @@ const SUB_DURATION = Math.floor(JEST_TIMEOUT / 6)
 
 beforeAll(async () => {
   jest.setTimeout(JEST_TIMEOUT)
-  testDebug('Requesting exchange socket')
-  const s = await Sockets.exchange(MockLnClient)
-  testDebug('Got exchange socket!')
+  testDebug('Requesting exchange spot socket')
+  const s = await Sockets.exchangeSpot(MockLnClient)
+  testDebug('Got exchange spot socket!')
   socket = s
   sockets.push(s)
-  testDebug('beforeAll complete')
+  testDebug('beforeAll spot complete')
 })
 
 afterAll(async () => {
-  testDebug('Closing exchange sockets')
+  testDebug('Closing exchange spot sockets')
   return Promise.all(sockets.map(s => s.close()))
 })
 
 const testHelper = async <C extends ExchangeChannel, E extends SpotExchange>(
   channel: C,
   exchange: E,
-  symbol: ExchangeSymbols<E>
+  symbol: SpotExchangeSymbols<E>
 ) => {
   await new Promise((resolve, reject) => {
     if (!socket) {
-      return reject('socket is null!')
+      return reject('spot socket is null!')
     }
     socket[channel]({
       exchange,
@@ -51,15 +52,15 @@ const testHelper = async <C extends ExchangeChannel, E extends SpotExchange>(
   return new Promise(resolve => setTimeout(resolve, 1500))
 }
 
-describe('Exchange API socket', () => {
+describe('Exchange spot API socket', () => {
   describe('Bitfinex', () => {
     it('must subscrbe to books', async () => testHelper('books', 'bitfinex', 'BTCUSD'))
     it('must subscrbe to trades', async () => testHelper('trades', 'bitfinex', 'ETHBTC'))
     it('must subscrbe to tickers', async () => testHelper('tickers', 'bitfinex', 'ETHUSD'))
   })
 
-  describe.only('Binance', () => {
-    it.only('must subscribe to books', async () => testHelper('books', 'binance', 'BTCUSDT'))
+  describe('Binance', () => {
+    it('must subscribe to books', async () => testHelper('books', 'binance', 'BTCUSDT'))
     it('must subscribe to trades', async () => testHelper('trades', 'binance', 'ETHBTC'))
     it('must subscribe to tickers', async () => testHelper('tickers', 'binance', 'ETHUSDT'))
   })
@@ -80,5 +81,10 @@ describe('Exchange API socket', () => {
     it('must subscribe to books', async () => testHelper('books', 'coinbase', 'ETHBTC'))
     it('must subscribe to trades', async () => testHelper('trades', 'coinbase', 'BTCUSD'))
     it('must subscribe to tickers', async () => testHelper('tickers', 'coinbase', 'ETHBTC'))
+  })
+
+  describe('Kraken', () => {
+    it('must subscribe to trades', async () => testHelper('trades', 'kraken', 'BTCUSD'))
+    it('must subscribe to tickers', async () => testHelper('tickers', 'kraken', 'ETHBTC'))
   })
 })

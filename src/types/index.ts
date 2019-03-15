@@ -5,6 +5,9 @@ import { PathReporter } from 'io-ts/lib/PathReporter'
 import WebSocket from 'ws'
 
 import { ExchangeSymbol } from './exchange/common/symbols'
+import { ALL_FUTURES_BOOKS_DATA_TYPES } from './exchange/futures/books'
+import { ALL_FUTURES_TICKERS_DATA_TYPES } from './exchange/futures/tickers'
+import { ALL_FUTURES_TRADES_DATA_TYPES } from './exchange/futures/trades'
 import { SpotExchange } from './exchange/spot'
 import { ALL_SPOT_BOOKS_DATA_TYPES } from './exchange/spot/books'
 import { ALL_SPOT_TICKERS_DATA_TYPES } from './exchange/spot/tickers'
@@ -156,6 +159,9 @@ const ALL_EXCHANGE_DATA_RESPONSE_TYPES: Array<t.Type<any>> = [
   ...ALL_SPOT_BOOKS_DATA_TYPES,
   ...ALL_SPOT_TICKERS_DATA_TYPES,
   ...ALL_SPOT_TRADES_DATA_TYPES,
+  ...ALL_FUTURES_TRADES_DATA_TYPES,
+  ...ALL_FUTURES_BOOKS_DATA_TYPES,
+  ...ALL_FUTURES_TICKERS_DATA_TYPES,
 ]
 
 export class MessageTypes {

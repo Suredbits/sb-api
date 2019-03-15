@@ -1,4 +1,6 @@
 import * as t from 'io-ts'
+import { Exchange } from '../../../sockets/crypto/common'
+import { FuturesExchange } from '../futures'
 import { SpotExchange } from '../spot'
 
 const BinanceSymbols = t.keyof({
@@ -7,6 +9,21 @@ const BinanceSymbols = t.keyof({
   ETHUSDT: t.null,
 })
 type BinanceSymbols = t.TypeOf<typeof BinanceSymbols>
+
+const KrakenSpotSymbols = t.keyof({
+  ETHBTC: t.null,
+  BTCUSD: t.null,
+  ETHUSD: t.null,
+})
+
+type KrakenSpotSymbols = t.TypeOf<typeof KrakenSpotSymbols>
+
+const KrakenFuturesSymbols = t.keyof({
+  BTCUSD: t.null,
+  ETHUSD: t.null,
+})
+
+type KrakenFuturesSymbols = t.TypeOf<typeof KrakenFuturesSymbols>
 
 const BitfinexSymbols = t.keyof({
   ETHBTC: t.null,
@@ -38,14 +55,29 @@ const GeminiSymbols = t.keyof({
 
 type GeminiSymbols = t.TypeOf<typeof GeminiSymbols>
 
-export type ExchangeSymbol =
-  | ExchangeSymbols<'binance'>
-  | ExchangeSymbols<'bitfinex'>
-  | ExchangeSymbols<'gemini'>
-  | ExchangeSymbols<'bitstamp'>
-  | ExchangeSymbols<'coinbase'>
+export type ExchangeSymbols<T extends Exchange> = T extends FuturesExchange
+  ? FuturesExchangeSymbols<T> | SpotExchangeSymbols<T>
+  : SpotExchangeSymbols<T>
 
-export type ExchangeSymbols<T extends SpotExchange> = T extends 'binance'
+export type ExchangeSymbol =
+  | ExchangeSymbols<'kraken'>
+  | ExchangeSymbols<'binance'>
+  | ExchangeSymbols<'coinbase'>
+  | ExchangeSymbols<'bitstamp'>
+  | ExchangeSymbols<'gemini'>
+  | ExchangeSymbols<'bitfinex'>
+
+export type FuturesExchangeSymbols<T extends FuturesExchange> = T extends 'kraken' ? KrakenFuturesSymbols : never
+
+export type SpotExchangeSymbol =
+  | SpotExchangeSymbols<'binance'>
+  | SpotExchangeSymbols<'bitfinex'>
+  | SpotExchangeSymbols<'gemini'>
+  | SpotExchangeSymbols<'bitstamp'>
+  | SpotExchangeSymbols<'coinbase'>
+  | SpotExchangeSymbols<'kraken'>
+
+export type SpotExchangeSymbols<T extends SpotExchange> = T extends 'binance'
   ? BinanceSymbols
   : T extends 'bitfinex'
   ? BitfinexSymbols
@@ -55,6 +87,8 @@ export type ExchangeSymbols<T extends SpotExchange> = T extends 'binance'
   ? GeminiSymbols
   : T extends 'bitstamp'
   ? BitstampSymbols
+  : T extends 'kraken'
+  ? KrakenSpotSymbols
   : never
 
 export const ExchangeSymbols = {
@@ -63,4 +97,8 @@ export const ExchangeSymbols = {
   coinbase: CoinbaseSymbols,
   gemini: GeminiSymbols,
   bitstamp: BitstampSymbols,
+  kraken: {
+    spot: KrakenSpotSymbols,
+    futures: KrakenFuturesSymbols,
+  },
 }
