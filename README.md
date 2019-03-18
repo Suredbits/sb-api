@@ -143,4 +143,8 @@ To activate logging output for a given namespace you need to set the `DEBUG` env
 
 ## Publishing
 
-TODO
+```
+$ yarn publish
+```
+
+Lints, checks formatting, makes new git tag, pushes new git tag, build, pushes build to npm
