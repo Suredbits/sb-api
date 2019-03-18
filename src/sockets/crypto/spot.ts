@@ -39,13 +39,13 @@ export class ExchangeSpotSocket extends ExchangeSocketBase {
   }
 
   public tickers = <E extends SpotExchange>(args: Tickers<E>): Promise<Subscription> =>
-    this.subscribe({ channel: 'tickers' as any, ...args })
+    this.subscribe({ channel: 'tickers', ...args })
 
   public books = <E extends SpotExchange>(args: Books<E>): Promise<Subscription> =>
-    this.subscribe({ channel: 'books' as any, ...args })
+    this.subscribe({ channel: 'books', ...args })
 
   public trades = <E extends SpotExchange>(args: Trades<E>): Promise<Subscription> =>
-    this.subscribe({ channel: 'trades' as any, ...args })
+    this.subscribe({ channel: 'trades', ...args })
 }
 
 export class ExchangeSpotSocketTestnet extends ExchangeSocketBase {
@@ -61,7 +61,7 @@ export class ExchangeSpotSocketTestnet extends ExchangeSocketBase {
 
   protected getTypes = (channel: ExchangeChannel, exchange: Exchange) => ExchangeSpotTypes.DataTypes[channel][exchange]
 
-  private getSymbol = <E extends Exchange>(exchange: E): SpotExchangeSymbols<E> => {
+  private getSymbol = <E extends SpotExchange>(exchange: E): SpotExchangeSymbols<E> => {
     if (exchange === 'binance') {
       return 'BCTUSDT' as any
     } else {

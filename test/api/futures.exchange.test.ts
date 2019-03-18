@@ -1,8 +1,16 @@
+import assertNever from 'assert-never'
 import { Sockets } from '../../src/sockets'
 import { ExchangeChannel } from '../../src/sockets/crypto/common'
-import { ExchangeFuturesSocket, MaturationInterval } from '../../src/sockets/crypto/futures'
+import {
+  BitmexMaturationInterval,
+  ExchangeFuturesSocket,
+  KrakenMaturationInterval,
+  MaturationInterval,
+  MaturationIntervalForExchangeAndSymbol,
+} from '../../src/sockets/crypto/futures'
 import { FuturesExchangeSymbols } from '../../src/types/exchange/common/symbols'
 import { FuturesExchange } from '../../src/types/exchange/futures'
+import { MaturationIntervalType } from '../../src/types/exchange/futures/common'
 import { MockLnClient } from '../mock.ln.client'
 import { testDebug } from '../test.util'
 
@@ -27,34 +35,64 @@ afterAll(async () => {
   return Promise.all(sockets.map(s => s.close()))
 })
 
-const intervals: MaturationInterval[] = ['monthly', 'perpetual', 'quarterly']
-const randomInterval = () => intervals[Math.floor(Math.random() * intervals.length)]
-
-const testHelper = async <C extends ExchangeChannel, E extends FuturesExchange>(
-  channel: C,
+const bitmexIntervals: BitmexMaturationInterval[] = ['biquarterly', 'perpetual', 'quarterly']
+const krakenIntervals: KrakenMaturationInterval[] = ['monthly', 'perpetual', 'quarterly']
+const randomInterval = <E extends FuturesExchange, S extends FuturesExchangeSymbols<E>>(
   exchange: E,
-  symbol: FuturesExchangeSymbols<E>
-) => {
+  pair: S
+): MaturationIntervalForExchangeAndSymbol<E, S> => {
+  if (exchange === 'bitmex') {
+    if (pair === 'BTCUSD') {
+      return randomFromList(bitmexIntervals) as any
+    } else if (pair === 'ETHBTC') {
+      return 'quarterly' as any
+    } else if (pair === 'ETHUSD') {
+      return 'perpetual' as any
+    } else {
+      throw Error(`Unexpected pair ${pair} for bitmex`)
+    }
+  } else if (exchange === 'kraken') {
+    return randomFromList(krakenIntervals) as any
+  } else {
+    throw Error(`Unexpected exchange ${exchange}`)
+  }
+}
+
+const randomFromList = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)]
+
+const randomSymbol = <E extends FuturesExchange>(exchange: E): FuturesExchangeSymbols<E> => {
+  switch (exchange) {
+    case 'bitmex': {
+      const bitmexSymbols: Array<FuturesExchangeSymbols<'bitmex'>> = ['BTCUSD', 'ETHBTC', 'ETHUSD']
+      return randomFromList(bitmexSymbols) as any
+    }
+    case 'kraken': {
+      const krakenSymbols: Array<FuturesExchangeSymbols<'kraken'>> = ['ETHUSD', 'BTCUSD']
+      return randomFromList(krakenSymbols) as any
+    }
+    default: {
+      throw Error(`Unknown exchange ${exchange}`)
+    }
+  }
+}
+
+const testHelper = async <C extends ExchangeChannel, E extends FuturesExchange>(channel: C, exchange: E) => {
   await new Promise((resolve, reject) => {
     if (!socket) {
       return reject('futures socket is null!')
     }
 
-    try {
-      socket[channel]({
-        exchange,
-        symbol,
-        interval: randomInterval(),
-        duration: SUB_DURATION,
-        onData: data => expect(data).toBeDefined,
-        onSnapshot: snapshot => expect(snapshot).not.toHaveLength(0),
-        onSubscriptionEnded: () => {
-          return resolve()
-        },
-      })
-    } catch (err) {
-      reject(err)
-    }
+    const symbol = randomSymbol(exchange)
+
+    socket[channel]({
+      exchange,
+      symbol,
+      interval: randomInterval(exchange, symbol),
+      duration: SUB_DURATION,
+      onData: data => expect(data).toBeDefined,
+      onSnapshot: snapshot => expect(snapshot).not.toHaveLength(0),
+      onSubscriptionEnded: resolve,
+    }).catch(reject)
   })
   // wait for a bit at the end, to give time for UUIDs to get
   // cleared on server
@@ -63,8 +101,14 @@ const testHelper = async <C extends ExchangeChannel, E extends FuturesExchange>(
 
 describe('Exchange futures API socket', () => {
   describe('Kraken', () => {
-    it('must fail to subscribe to books', async () => expect(testHelper('books', 'kraken', 'BTCUSD')).toThrowError)
-    it('must subscribe to trades', async () => testHelper('trades', 'kraken', 'BTCUSD'))
-    it('must subscribe to tickers', async () => testHelper('tickers', 'kraken', 'ETHUSD'))
+    it('must subscribe to books', async () => testHelper('books', 'kraken'))
+    it('must subscribe to trades', async () => testHelper('trades', 'kraken'))
+    it('must subscribe to tickers', async () => testHelper('tickers', 'kraken'))
+  })
+
+  describe('Bitmex', () => {
+    it('must subscribe to tickers', async () => testHelper('tickers', 'bitmex'))
+    it('must subscribe to trades', async () => testHelper('trades', 'bitmex'))
+    it('must subscribe to books', async () => testHelper('books', 'bitmex'))
   })
 })

@@ -1,3 +1,4 @@
+import assertNever from 'assert-never'
 import { Sockets } from '../../src/sockets'
 import { ExchangeChannel } from '../../src/sockets/crypto/common'
 import { ExchangeSpotSocket } from '../../src/sockets/crypto/spot'
@@ -42,10 +43,8 @@ const testHelper = async <C extends ExchangeChannel, E extends SpotExchange>(
       duration: SUB_DURATION,
       onData: data => expect(data).toBeDefined,
       onSnapshot: snapshot => expect(snapshot).not.toHaveLength(0),
-      onSubscriptionEnded: () => {
-        return resolve()
-      },
-    })
+      onSubscriptionEnded: resolve,
+    }).catch(reject)
   })
   // wait for a bit at the end, to give time for UUIDs to get
   // cleared on server
@@ -83,7 +82,11 @@ describe('Exchange spot API socket', () => {
     it('must subscribe to tickers', async () => testHelper('tickers', 'coinbase', 'ETHBTC'))
   })
 
-  describe('Kraken', () => {
+  describe.only('Kraken', () => {
+    it.only('must fail to subscribe to books', async () => {
+      return expect(testHelper('books', 'kraken', 'ETHBTC')).rejects.toThrow()
+    })
+
     it('must subscribe to trades', async () => testHelper('trades', 'kraken', 'BTCUSD'))
     it('must subscribe to tickers', async () => testHelper('tickers', 'kraken', 'ETHBTC'))
   })

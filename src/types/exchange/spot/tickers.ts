@@ -51,7 +51,6 @@ const BinanceSpotTickerFields = t.intersection([
     quoteVolume: t.number,
     statCloseTime: t.number,
     statOpenTime: t.number,
-    totalTrades: t.Integer,
     weightedAvePrice: t.number,
   }),
 ])
@@ -112,6 +111,10 @@ export const ExchangeSpotTickersTypes = {
   kraken: {
     data: t.refinement(KrakenSpotTickerFields, () => true, 'KrakenSpotTickersDataType'),
     snapshot: t.array(KrakenSpotTickerFields, 'KrakenSpotTickersSnapshotType'),
+  },
+  bitmex: {
+    data: t.type({}),
+    snapshot: t.array(t.type({})),
   },
 }
 

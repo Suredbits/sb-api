@@ -46,7 +46,7 @@ const BinanceSpotBookFields = t.intersection([
   }),
 ])
 
-const KrakenSpotBookFields = (t.never as any) as t.Type<any>
+const KrakenSpotBookFields = t.type({}) // Kraken spot does not support books
 
 export const ExchangeSpotBooksTypes = {
   bitfinex: {
@@ -72,6 +72,10 @@ export const ExchangeSpotBooksTypes = {
   kraken: {
     data: t.refinement(KrakenSpotBookFields, () => true, 'KrakenSpotBooksDataType'),
     snapshot: t.array(KrakenSpotBookFields, 'KrakenSpotBooksSnapshotType'),
+  },
+  bitmex: {
+    data: t.type({}),
+    snapshot: t.array(t.type({})),
   },
 }
 

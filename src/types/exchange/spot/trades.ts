@@ -92,6 +92,10 @@ export const ExchangeSpotTradesTypes = {
     data: t.refinement(KrakenSpotTradeFields, () => true, 'KrakenSpotTradesDataType'),
     snapshot: t.array(KrakenSpotTradeFields, 'KrakenSpotTradesSnapshotType'),
   },
+  bitmex: {
+    data: t.type({}),
+    snapshot: t.array(t.type({})),
+  },
 }
 
 export const ALL_SPOT_TRADES_DATA_TYPES = [

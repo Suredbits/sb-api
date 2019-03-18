@@ -1,3 +1,4 @@
+import { toUnfoldable } from 'fp-ts/lib/StrMap'
 import * as t from 'io-ts'
 import { Exchange } from '../../../sockets/crypto/common'
 import { FuturesExchange } from '../futures'
@@ -24,6 +25,18 @@ const KrakenFuturesSymbols = t.keyof({
 })
 
 type KrakenFuturesSymbols = t.TypeOf<typeof KrakenFuturesSymbols>
+
+const BitmexSpotSymbols = t.keyof({ shouldNotAppear: t.null })
+
+type BitmexSpotSymbols = t.TypeOf<typeof BitmexSpotSymbols>
+
+const BitmexFuturesSymbols = t.keyof({
+  BTCUSD: t.null,
+  ETHUSD: t.null,
+  ETHBTC: t.null,
+})
+
+type BitmexFuturesSymbols = t.TypeOf<typeof BitmexFuturesSymbols>
 
 const BitfinexSymbols = t.keyof({
   ETHBTC: t.null,
@@ -56,8 +69,10 @@ const GeminiSymbols = t.keyof({
 type GeminiSymbols = t.TypeOf<typeof GeminiSymbols>
 
 export type ExchangeSymbols<T extends Exchange> = T extends FuturesExchange
-  ? FuturesExchangeSymbols<T> | SpotExchangeSymbols<T>
-  : SpotExchangeSymbols<T>
+  ? FuturesExchangeSymbols<T>
+  : T extends SpotExchange
+  ? SpotExchangeSymbols<T>
+  : never
 
 export type ExchangeSymbol =
   | ExchangeSymbols<'kraken'>
@@ -67,7 +82,11 @@ export type ExchangeSymbol =
   | ExchangeSymbols<'gemini'>
   | ExchangeSymbols<'bitfinex'>
 
-export type FuturesExchangeSymbols<T extends FuturesExchange> = T extends 'kraken' ? KrakenFuturesSymbols : never
+export type FuturesExchangeSymbols<T extends FuturesExchange> = T extends 'kraken'
+  ? KrakenFuturesSymbols
+  : T extends 'bitmex'
+  ? BitmexFuturesSymbols
+  : never
 
 export type SpotExchangeSymbol =
   | SpotExchangeSymbols<'binance'>
@@ -89,6 +108,8 @@ export type SpotExchangeSymbols<T extends SpotExchange> = T extends 'binance'
   ? BitstampSymbols
   : T extends 'kraken'
   ? KrakenSpotSymbols
+  : T extends 'bitmex'
+  ? BitmexSpotSymbols
   : never
 
 export const ExchangeSymbols = {
@@ -100,5 +121,9 @@ export const ExchangeSymbols = {
   kraken: {
     spot: KrakenSpotSymbols,
     futures: KrakenFuturesSymbols,
+  },
+  bitmex: {
+    spot: BitmexSpotSymbols,
+    futures: BitmexFuturesSymbols,
   },
 }

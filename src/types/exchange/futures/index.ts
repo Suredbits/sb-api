@@ -14,7 +14,7 @@ export declare namespace ExchangeFuturesTypes {
   >
 }
 
-export type FuturesExchange = 'kraken'
+export type FuturesExchange = 'kraken' | 'bitmex'
 
 export class ExchangeFuturesTypes {
   public static DataTypes = {
