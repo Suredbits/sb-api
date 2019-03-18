@@ -7,9 +7,9 @@ const CommonSpotTickerFields = t.type({
   volume: t.number,
 })
 
-const GeminiTickerFields = t.intersection([CommonSpotTickerFields, t.type({ statCloseTime: t.Integer })])
+const GeminiSpotTickerFields = t.intersection([CommonSpotTickerFields, t.type({ statCloseTime: t.Integer })])
 
-const BitstampTickerFields = t.intersection([
+const BitstampSpotTickerFields = t.intersection([
   CommonSpotTickerFields,
   t.type({
     eventTime: t.Integer,
@@ -21,7 +21,7 @@ const BitstampTickerFields = t.intersection([
   }),
 ])
 
-const CoinbaseTickerFields = t.intersection([
+const CoinbaseSpotTickerFields = t.intersection([
   CommonSpotTickerFields,
   t.type({
     eventTime: t.Integer,
@@ -32,7 +32,7 @@ const CoinbaseTickerFields = t.intersection([
   }),
 ])
 
-const BinanceTickerFields = t.intersection([
+const BinanceSpotTickerFields = t.intersection([
   CommonSpotTickerFields,
   t.type({
     askSize: t.number,
@@ -51,12 +51,11 @@ const BinanceTickerFields = t.intersection([
     quoteVolume: t.number,
     statCloseTime: t.number,
     statOpenTime: t.number,
-    totalTrades: t.Integer,
     weightedAvePrice: t.number,
   }),
 ])
 
-const BitfinexTickerFields = t.intersection([
+const BitfinexSpotTickerFields = t.intersection([
   CommonSpotTickerFields,
   t.type({
     eventTime: t.Integer,
@@ -70,26 +69,52 @@ const BitfinexTickerFields = t.intersection([
   }),
 ])
 
+const KrakenSpotTickerFields = t.intersection([
+  CommonSpotTickerFields,
+  t.type({
+    askSize: t.number,
+    bidSize: t.number,
+    close: t.number,
+    closeQuantity: t.number,
+    eventTime: t.Integer,
+    high: t.number,
+    low: t.number,
+    open: t.number,
+    statCloseTime: t.number,
+    statOpenTime: t.number,
+    totalTrades: t.Integer,
+    weightedAvePrice: t.number,
+  }),
+])
+
 export const ExchangeSpotTickersTypes = {
   binance: {
-    data: t.refinement(BinanceTickerFields, () => true, 'BinanceSpotTickersDataType'),
-    snapshot: t.array(BinanceTickerFields, 'BinanceSpotTickersSnapshotType'),
+    data: t.refinement(BinanceSpotTickerFields, () => true, 'BinanceSpotTickersDataType'),
+    snapshot: t.array(BinanceSpotTickerFields, 'BinanceSpotTickersSnapshotType'),
   },
   bitfinex: {
-    data: t.refinement(BitfinexTickerFields, () => true, 'BitfinexSpotTickersDataType'),
-    snapshot: t.array(BitfinexTickerFields, 'BitfinexSpotTickersSnapshotType'),
+    data: t.refinement(BitfinexSpotTickerFields, () => true, 'BitfinexSpotTickersDataType'),
+    snapshot: t.array(BitfinexSpotTickerFields, 'BitfinexSpotTickersSnapshotType'),
   },
   coinbase: {
-    data: t.refinement(CoinbaseTickerFields, () => true, 'CoinbaseSpotTickersDataType'),
-    snapshot: t.array(CoinbaseTickerFields, 'CoinbaseSpotTickersSnapshotType'),
+    data: t.refinement(CoinbaseSpotTickerFields, () => true, 'CoinbaseSpotTickersDataType'),
+    snapshot: t.array(CoinbaseSpotTickerFields, 'CoinbaseSpotTickersSnapshotType'),
   },
   gemini: {
-    data: t.refinement(GeminiTickerFields, () => true, 'GeminiSpotTickersDataType'),
-    snapshot: t.array(GeminiTickerFields, 'GeminiSpotTickersSnapshotType'),
+    data: t.refinement(GeminiSpotTickerFields, () => true, 'GeminiSpotTickersDataType'),
+    snapshot: t.array(GeminiSpotTickerFields, 'GeminiSpotTickersSnapshotType'),
   },
   bitstamp: {
-    data: t.refinement(BitstampTickerFields, () => true, 'BitstampSpotTickersDataType'),
-    snapshot: t.array(BitstampTickerFields, 'BitstampSpotTickersSnapshotType'),
+    data: t.refinement(BitstampSpotTickerFields, () => true, 'BitstampSpotTickersDataType'),
+    snapshot: t.array(BitstampSpotTickerFields, 'BitstampSpotTickersSnapshotType'),
+  },
+  kraken: {
+    data: t.refinement(KrakenSpotTickerFields, () => true, 'KrakenSpotTickersDataType'),
+    snapshot: t.array(KrakenSpotTickerFields, 'KrakenSpotTickersSnapshotType'),
+  },
+  bitmex: {
+    data: t.type({}),
+    snapshot: t.array(t.type({})),
   },
 }
 
@@ -99,14 +124,5 @@ export const ALL_SPOT_TICKERS_DATA_TYPES = [
   ExchangeSpotTickersTypes.binance.data,
   ExchangeSpotTickersTypes.gemini.data,
   ExchangeSpotTickersTypes.bitstamp.data,
+  ExchangeSpotTickersTypes.kraken.data,
 ]
-
-const ALL_SPOT_TICKERS_SNAPSHOT_TYPES = [
-  ExchangeSpotTickersTypes.bitfinex.snapshot,
-  ExchangeSpotTickersTypes.coinbase.snapshot,
-  ExchangeSpotTickersTypes.binance.snapshot,
-  ExchangeSpotTickersTypes.gemini.snapshot,
-  ExchangeSpotTickersTypes.bitstamp.snapshot,
-]
-
-export const ALL_SPOT_EXCHANGE_TICKER_TYPES = [...ALL_SPOT_TICKERS_SNAPSHOT_TYPES, ...ALL_SPOT_TICKERS_DATA_TYPES]

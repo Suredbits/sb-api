@@ -19,6 +19,7 @@ You're also welcome to join our [Slack](https://join.slack.com/t/suredbits/share
   - [Request data](#request-data)
   - [Types](#types)
 - [Debug logging](#debug-logging)
+- [Publishing](#publishing)
 
 ## Add it to your project:
 
@@ -53,8 +54,7 @@ You should not keep large amounts of money on the node you're using with this li
 import { Eclair, Sockets } from 'sb-api'
 
 const eclair = await Eclair({ rpcPass: 'super_secret' })
-const refundInvoice = await eclair.receive()
-const exchangeSocket = await Sockets.exchangeTestnet(eclair)
+const futuresSocket = await Sockets.exchangeSpot(eclair)
 ```
 
 #### LND
@@ -63,8 +63,7 @@ const exchangeSocket = await Sockets.exchangeTestnet(eclair)
 import { Lnd, Sockets } from 'sb-api'
 
 const lnd = await Lnd()
-const refundInvoice = await lnd.receive()
-const exchangeSocket = await Sockets.exchangeTestnet(lnd)
+// You then pass lnd into the appropriate socket you're interested in.
 ```
 
 #### `c-lightning`
@@ -85,15 +84,32 @@ See [`doc/ln-clients.md`](doc/ln-clients.md) for more information on how to use 
 import { Lnd, Sockets } from 'sb-api'
 
 const ln = await Lnd()
-const exchangeSocket = await Sockets.exchangeTestnet()
-exchangeSocket.tickers({
+const spot = await Sockets.exchangeSpot(ln)
+spot.tickers({
   duration: 10000,
   exchange: 'binance',
   // data has types! data.bidSize works, data.wrongField gives an error
   onData: data => console.log('received some data:', data),
   // snap has types! snap.map(s => handleS(s)) works, snap.wrongField gives an error
   onSnapshot: snap => console.log('received a snapshot:', snap),
+  // this callback is called at the end of your subscription, and provides
+  // you with a list of all the elements you've received
+  onSubscriptionEnded: datapoints => datapoints[0],
   refundInvoice,
+})
+
+// the comments above on the callbacks used for the spot socket
+// also apply for the futures socket
+
+const futures = await Sockets.exchangeFutures(ln)
+futures.trades({
+  exchange: 'bitmex',
+  symbol: 'BTCUSD',
+  interval: 'biquarterly',
+  onData: data => data,
+  onSnapshot: snap => snap[0],
+  onSubscriptionEnded: datapoints => datapoints[0],
+  duration: 20000,
 })
 
 const nflSocket = await Sockets.nflTestnet()
@@ -124,3 +140,7 @@ This library uses the [`debug`](https://www.npmjs.com/package/debug) module for 
 To activate logging output for a given namespace you need to set the `DEBUG` environment variable. Namespaces are hierarchically organized with `:` as the level separator. It's possible to specify multiple namespaces by comma-separating them. `DEBUG=sb-api:*` causes all namespaces to get logged. Setting `DEBUG` to `sb-api:socket:*` activates the `sb-api:socket:base`, `sb-api:socket:ppc` and `sb-api:socket:exchange` namespaces.
 
 `DEBUG=sb-api:lightning:*,sb-api:socket:base,sb-api:socket:ppc` would enable logging of all Lightning activity, the functionality common for all sockets and the functionality common for pay-per-call sockets (NBA & NFL).
+
+## Publishing
+
+TODO
