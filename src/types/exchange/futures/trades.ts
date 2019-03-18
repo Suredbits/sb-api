@@ -4,37 +4,39 @@ import { uuid } from 'io-ts-types'
 import { ExchangeSymbols } from '../common/symbols'
 import { FuturesTradeReason } from './common'
 
-const BitmexFuturesTradeFields = t.intersection([
+const CommonFuturesTradeFields = t.intersection([
   t.type({
-    symbol: ExchangeSymbols.bitmex.futures,
-    tradeId: uuid,
-    price: t.number,
-    quantity: t.Integer,
-    grossValue: t.Integer,
-    homeNotional: t.number,
-    foreignNotional: t.number,
     tradeTime: t.Integer,
     marketMaker: t.boolean,
+    price: t.number,
+    quantity: t.Int,
   }),
   t.partial({
+    /**
+     * Only present for non-perpetual futures
+     */
     maturationTime: t.Integer,
   }),
 ])
 
+const BitmexFuturesTradeFields = t.intersection([
+  CommonFuturesTradeFields,
+  t.type({
+    symbol: ExchangeSymbols.bitmex.futures,
+    tradeId: uuid,
+    grossValue: t.Integer,
+    homeNotional: t.number,
+    foreignNotional: t.number,
+  }),
+])
+
 const KrakenFuturesTradeFields = t.intersection([
+  CommonFuturesTradeFields,
   t.type({
     symbol: ExchangeSymbols.kraken.futures,
-    price: t.number,
-    quantity: t.Int,
-    tradeTime: t.Int,
-    marketMaker: t.boolean,
-    reason: FuturesTradeReason,
   }),
   t.partial({
-    /**
-     * Not present if subscribing to perpetual futures
-     */
-    maturationTime: t.Integer,
+    reason: FuturesTradeReason,
   }),
 ])
 

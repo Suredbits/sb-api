@@ -1,30 +1,33 @@
 import * as t from 'io-ts'
 import { ExchangeSymbols } from '../common/symbols'
 
-/**
- * Kraken does not support books
- */
-const KrakenFuturesBookFields = t.intersection([
-  t.type({
-    eventTime: t.Int,
-    symbol: ExchangeSymbols.kraken.futures,
-    price: t.number,
-    quantityTotal: t.number,
-  }),
+const CommonBookFields = t.intersection([
+  t.type({}),
   t.partial({
+    price: t.number,
+
+    /**
+     * Only present if subscribing to perpetual futures
+     */
     maturation: t.Integer,
   }),
 ])
 
+const KrakenFuturesBookFields = t.intersection([
+  CommonBookFields,
+  t.type({
+    eventTime: t.Integer,
+    symbol: ExchangeSymbols.kraken.futures,
+    quantityTotal: t.number,
+  }),
+])
+
 const BitmexFuturesBookFields = t.intersection([
+  CommonBookFields,
   t.type({
     symbol: ExchangeSymbols.bitmex.futures,
     orderId: t.Integer,
     quantityChange: t.number,
-  }),
-  t.partial({
-    maturation: t.Integer,
-    price: t.number,
   }),
 ])
 
