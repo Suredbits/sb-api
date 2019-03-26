@@ -1,5 +1,23 @@
 import makeDebug from 'debug'
-import lnd, { ConnectArgs, LndClient } from 'lnd-async'
+import lnd from 'lnd-async'
+
+interface LndClient {
+  sendPaymentSync: (args: { payment_request: string }) => Promise<any>
+  addInvoice: (args: { memo?: string }) => Promise<any>
+  getInfo: ({}) => Promise<any>
+}
+
+interface LndConnectArgs {
+  lndHost?: string
+  lndPort?: number
+  noMacaroons?: boolean
+
+  certPath?: string
+  macaroonPath?: string
+
+  cert?: string
+  macaroon?: string
+}
 
 import { LightningApi } from '.'
 
@@ -23,7 +41,7 @@ class LndImpl implements LightningApi {
   public getInfo = (): Promise<any> => this.lndClient.getInfo({})
 }
 
-export const Lnd = async (args?: ConnectArgs): Promise<Lnd> => {
+export const Lnd = async (args?: LndConnectArgs): Promise<Lnd> => {
   debug('Trying to connect to LND')
   const client = await lnd.connect(args)
   debug('Succeeded!')
