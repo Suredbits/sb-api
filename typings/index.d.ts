@@ -1,23 +1,5 @@
 declare module 'lnd-async' {
-  export interface LndClient {
-    sendPaymentSync: (args: { payment_request: string }) => Promise<any>
-    addInvoice: (args: { memo?: string }) => Promise<any>
-    getInfo: ({}) => Promise<any>
-  }
-
-  export interface ConnectArgs {
-    lndHost?: string
-    lndPort?: number
-    noMacaroons?: boolean
-
-    certPath?: string
-    macaroonPath?: string
-
-    cert?: string
-    macaroon?: string
-  }
-
-  export function connect(args?: ConnectArgs): Promise<LndClient>
+  export function connect(args?: any): Promise<any>
 }
 
 declare module 'lightning-client' {
