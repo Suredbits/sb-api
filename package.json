@@ -19,6 +19,7 @@
     "lib/**/*"
   ],
   "scripts": {
+    "dev": "env DEBUG='sb-api:lightning:*,sb-api:rest:*' npx ts-node -T index.ts",
     "build": "tsc",
     "clean": "rimraf lib",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
@@ -41,6 +42,7 @@
     "prettier": "^1.16.4",
     "rimraf": "^2.6.3",
     "ts-jest": "^23.10.5",
+    "ts-node": "^8.3.0",
     "tslint": "^5.12.1",
     "tslint-config-prettier": "^1.18.0",
     "typescript": "3.3.3"
