@@ -27,7 +27,7 @@ class EclairImpl implements LightningApi {
   private uri: string
   public constructor({ host = 'localhost', rpcPass, port = 8080 }: EclairArgs) {
     // Eclair does not have users, user field is therefore blank
-    this.uri = `http://:${rpcPass}@${host}:${port}`
+    this.uri = `http://:${encodeURIComponent(rpcPass)}@${host}:${port}`
   }
 
   public receive = (description: string = '') => {
