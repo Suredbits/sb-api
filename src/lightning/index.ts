@@ -26,7 +26,7 @@ export { Eclair } from './eclair'
 export { CLightning } from './clightning'
 export { Lnd } from './lnd'
 
-export const enum BitcoinNetwork {
+export enum BitcoinNetwork {
   testnet = 'testnet',
   mainnet = 'mainnet',
 }

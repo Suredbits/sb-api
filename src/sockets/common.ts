@@ -7,7 +7,7 @@ import { MessageTypes, WelcomeMessageType } from '../types'
 
 export type OnWsOpen = (msg: WelcomeMessageType) => any
 
-export const enum API {
+export enum API {
   NFL = 'nfl',
   NBA = 'nba',
   spot = 'spot',
