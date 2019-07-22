@@ -21,16 +21,43 @@ class CLightningImpl implements LightningApi {
     this.client = new LightningClient(rpcPath)
   }
 
+  public getPreimage: (invoice: string) => Promise<string> = invoice => {
+    debug(`Getting preimage for invoice ${invoice}`)
+    const preimage = this.preimages[invoice]
+
+    if (!preimage) {
+      return Promise.reject(new Error(`Could not find preimage for invoice ${invoice}`))
+    } else {
+      return Promise.resolve(preimage)
+    }
+  }
+
   public receive = (description: string = ''): Promise<string> => {
     const uniqueLabel = uuid() // c-lightning requires all invoice labels to be unique
 
     // c-lightning expects the string 'any' to make an invoice without amount specified
     const amountMsat = 'any'
 
+    debug(`Getting a new invoice with ${description ? `description: ${description}` : 'no description'}`)
     return this.client.invoice(amountMsat, uniqueLabel, description).then(({ bolt11 }) => bolt11)
   }
 
-  public send = (invoice: string): Promise<any> => this.client.pay(invoice)
+  public send = (invoice: string): Promise<any> => {
+    debug(`Paying invoice ${invoice}`)
+    return this.client
+      .pay(invoice)
+      .then(res => {
+        this.preimages[invoice] = res.payment_preimage
+        return res
+      })
+      .catch((err: Error) => {
+        debug(`Error: ${JSON.stringify(err)}`)
+        throw err
+      })
+  }
+
+  /** Maps over paid invoices with their corresponding preimage */
+  private preimages: { [invoice: string]: string | undefined } = {}
 
   public getInfo = (): Promise<any> => this.client.getinfo()
 }

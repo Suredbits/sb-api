@@ -16,7 +16,8 @@ You're also welcome to join our [Slack](https://join.slack.com/t/suredbits/share
     - [Eclair](#eclair)
     - [LND](#lnd)
     - [`c-lightning`](#c-lightning)
-  - [Request data](#request-data)
+  - [Request data from historical REST APIs](#request-data-from-historical-rest-apis)
+  - [Request data from soccket based APIs](#request-data-from-soccket-based-apis)
   - [Types](#types)
 - [Debug logging](#debug-logging)
 - [Publishing](#publishing)
@@ -63,7 +64,7 @@ const futuresSocket = await Sockets.exchangeSpot(eclair)
 import { Lnd, Sockets } from 'sb-api'
 
 const lnd = await Lnd()
-// You then pass lnd into the appropriate socket you're interested in.
+// You then pass lnd into the appropriate socket/REST API you're interested in.
 ```
 
 #### `c-lightning`
@@ -73,12 +74,33 @@ import { CLightning } from 'sb-api'
 
 const client = await CLightning()
 
-// You then pass client into the appropriate socket you're interested in.
+// You then pass client into the appropriate socket/REST API you're interested in.
 ```
 
 See [`doc/ln-clients.md`](doc/ln-clients.md) for more information on how to use your favorite LN implementation, and what the available options are.
 
-### Request data
+### Request data from historical REST APIs
+
+We provide REST APIs for data that are not realtime-based (such as
+historical market data). These functions are regular promises
+that can call `.then` or `await` on. Behind the scenes we make a HTTP
+request, pay the accompanying invoice and then use the preimage of the
+invoice to decrypt the received data.
+
+```typescript
+const lnd = await Lnd()
+
+const rest = HistoricalRestAPI(lnd)
+
+const response = await rest.call({ exchange: 'bitstamp', pair: 'BTCUSD', period: 'daily', year: 2018 })
+```
+
+### Request data from soccket based APIs
+
+We provide streaming realtime data over WebSockets. These APIs require you
+to specify callbacks (functions) that gets executed whenever certain events
+happen. Note that if you're using TypeScript, the callbacks are fully
+typed, with inferred types from the exchange you're requesting data from.
 
 ```typescript
 import { Lnd, Sockets } from 'sb-api'
@@ -136,6 +158,7 @@ This library uses the [`debug`](https://www.npmjs.com/package/debug) module for 
 - `sb-api:socket:ppc` - functionality common for pay-per-call sockets (NBA & NFL)
 - `sb-api:socket:exchange` - crypto market data logging
 - `sb-api:validation` - logs the validation of incoming data from the API
+- `sb-api:rest` - logs queries and responses to the Suredbits REST APIs
 
 To activate logging output for a given namespace you need to set the `DEBUG` environment variable. Namespaces are hierarchically organized with `:` as the level separator. It's possible to specify multiple namespaces by comma-separating them. `DEBUG=sb-api:*` causes all namespaces to get logged. Setting `DEBUG` to `sb-api:socket:*` activates the `sb-api:socket:base`, `sb-api:socket:ppc` and `sb-api:socket:exchange` namespaces.
 

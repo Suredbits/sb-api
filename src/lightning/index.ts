@@ -10,6 +10,11 @@ export interface LightningApi {
    */
   receive: (description?: string) => Promise<string>
 
+  /** Gets the preimage associated with the given invoice.
+   * Fails if the invoice isn't paid.
+   */
+  getPreimage: (invoice: string) => Promise<string>
+
   /**
    * Verify that we're communicating with the client
    * properly

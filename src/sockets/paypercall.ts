@@ -2,7 +2,7 @@ import makeDebug from 'debug'
 import * as t from 'io-ts'
 import WebSocket from 'ws'
 
-import { MessageTypes, PpcDataMessageType, Validate } from '../types'
+import { MessageTypes, PpcDataMessageType, SocketValidate } from '../types'
 import { UUID } from '../uuid'
 import { AtleastUUID, SbWebSocket } from './common'
 
@@ -36,7 +36,7 @@ export abstract class PayPerCallSocket extends SbWebSocket {
 
       this.ln.send(parsed.invoice)
     } else if (MessageTypes.isPpcDataResponse(parsed, type)) {
-      const msg = Validate.data(data, type, reject)
+      const msg = SocketValidate.data(data, type, reject)
       debug('Message is data message with UUID %s', uuid)
 
       this.pendingRequests[uuid] = undefined

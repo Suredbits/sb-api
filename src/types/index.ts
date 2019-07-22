@@ -20,16 +20,19 @@ const debug = makeDebug('sb-api:validation')
 export type SeasonPhase = 'Preseason' | 'Regular' | 'Postseason'
 export type StatType = 'passing' | 'rushing' | 'receiving' | 'defense'
 
+/** Result of validating socket data */
 interface ValidateDataResult {
   uuid: string
   data: any[] | object
 }
 
+/** Result of validating socket snapshot */
 interface ValidateSnapshotResult {
   uuid: string
   snapshot: any[]
 }
 
+/** Called on error when validating socket data */
 type OnError = (err: any) => any
 
 /**
@@ -45,7 +48,7 @@ export class DataValidationError extends Error {
   }
 }
 
-const validate = (data: any[] | object, type: t.Type<any>, onError: OnError) => {
+const validate = <T>(data: any[] | object, type: t.Type<T>, onError: OnError): t.TypeOf<typeof type> => {
   if (Array.isArray(data)) {
     debug(`Validating %O $`, data.slice(0, 3))
     if (data.length > 3) {
@@ -75,7 +78,7 @@ const validate = (data: any[] | object, type: t.Type<any>, onError: OnError) => 
   return decoded
 }
 
-export const Validate = {
+export const SocketValidate = {
   snapshot: (msg: WebSocket.Data, type: t.Type<any>, onError: OnError): ValidateSnapshotResult => {
     const msgStr = msg.toString()
     const json: { uuid?: string; snapshot?: any[] } = JSON.parse(msgStr)
@@ -117,6 +120,14 @@ export const Validate = {
 
     return { uuid, data: decoded }
   },
+}
+
+export const RestValidate = {
+  data: <T>(data: object, type: t.Type<T, any, any>): T =>
+    validate(data, type, err => {
+      debug(`Err when validating data: ${err}`)
+      throw err
+    }),
 }
 
 export type WelcomeMessageType = t.TypeOf<typeof MessageTypes.Welcome>

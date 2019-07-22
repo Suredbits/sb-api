@@ -30,6 +30,7 @@
     "postversion": "git push && git push --tags"
   },
   "devDependencies": {
+    "@types/crypto-js": "^3.1.43",
     "@types/debug": "^4.1.0",
     "@types/jest": "^24.0.1",
     "@types/request-promise-native": "^1.0.15",
@@ -47,11 +48,13 @@
   "dependencies": {
     "assert": "^1.4.1",
     "assert-never": "^1.1.0",
+    "bolt11": "^1.2.6",
+    "crypto-js": "^3.1.9-1",
     "debug": "^4.1.1",
     "io-ts": "1.8.1",
     "io-ts-types": "0.4.2",
     "lightning-client": "^0.5.2-beta.8",
-    "lnd-async": "^1.6.0",
+    "lnd-async": "1.8.0",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.5",
     "uuid": "^3.3.2",

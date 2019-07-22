@@ -2,6 +2,9 @@ import * as t from 'io-ts'
 import * as types from 'io-ts-types'
 
 import { StatType } from '.'
+const t2 = t.type({
+  date: types.DateFromISOString,
+})
 
 export type NflTeamType = t.TypeOf<typeof NflTypes.NflTeamType>
 export type NflGamesResponseType = t.TypeOf<typeof NflTypes.GamesResponseType>

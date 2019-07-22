@@ -1,0 +1,1 @@
+export { HistoricalRestAPI } from './historical'

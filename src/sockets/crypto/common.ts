@@ -3,7 +3,7 @@ import * as t from 'io-ts'
 import WebSocket from 'ws'
 
 import { BitcoinNetwork, LightningApi } from '../../lightning'
-import { MessageTypes, Validate } from '../../types'
+import { MessageTypes, SocketValidate } from '../../types'
 import { ExchangeSymbols } from '../../types/exchange/common/symbols'
 import { FuturesExchange } from '../../types/exchange/futures'
 import { SpotExchange } from '../../types/exchange/spot'
@@ -140,14 +140,14 @@ export abstract class ExchangeSocketBase extends SbWebSocket {
             activated: true,
           }
           this.subscriptions[uuid] = newSub
-          const validated = Validate.snapshot(wsData, sub.snapshotType, this.onSnapshotValidationError)
+          const validated = SocketValidate.snapshot(wsData, sub.snapshotType, this.onSnapshotValidationError)
           const { onSnapshot } = sub
           onSnapshot(validated.snapshot)
         } else if (MessageTypes.isExchangeDataResponse(parsed, sub.dataType)) {
           const { data } = parsed
           debug(`Received data for ${uuid}`)
           debug('Data: %O', data)
-          const validated = Validate.data(wsData, sub.dataType, this.onDataValidationError)
+          const validated = SocketValidate.data(wsData, sub.dataType, this.onDataValidationError)
           this.addDataPoint(uuid, validated.data)
           sub.datapoints = [...sub.datapoints]
           sub.onData(validated.data)
