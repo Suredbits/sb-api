@@ -45,12 +45,19 @@ class LndImpl implements LightningApi {
 
   public send = (invoice: string): Promise<any> => {
     debug(`Paying invoice ${invoice.slice(0, 25)}...`)
-    return this.lndClient.sendPaymentSync({ payment_request: invoice }).then(res => {
-      const preimage = res.payment_preimage.toString('hex')
-      debug(`Adding preimage to invoice ${invoice.slice(0, 10)}: ${preimage}`)
-      this.preimages[invoice] = preimage
-      return res
-    })
+    return this.lndClient
+      .sendPaymentSync({ payment_request: invoice })
+      .then(res => {
+        debug(`Result of paying invoice ${invoice.slice(0, 10)}: %O`, res)
+        const preimage = res.payment_preimage.toString('hex')
+        debug(`Adding preimage to invoice ${invoice.slice(0, 10)}: ${preimage}`)
+        this.preimages[invoice] = preimage
+        return res
+      })
+      .catch(err => {
+        debug(`Error when paying invoice ${invoice.slice(0, 10)}: %O`, err)
+        throw err
+      })
   }
 
   private preimages: { [invoice: string]: string | undefined } = {}

@@ -39,10 +39,10 @@ interface HistoricalRestAPIArgs<E extends Exchange> {
 }
 
 interface HistoricalRestAPI {
-  call: <E extends Exchange>(args: HistoricalRestAPIArgs<E>) => Promise<any>
+  call: <E extends Exchange>(args: HistoricalRestAPIArgs<E>) => Promise<DecryptedHistoricalResponse>
 }
 
-const debug = makeDebug('sb-api:rest')
+const debug = makeDebug('sb-api:rest:historical')
 
 export const HistoricalRestAPI: (ln: LightningApi) => HistoricalRestAPI = lightning => {
   return {
@@ -57,10 +57,11 @@ export const HistoricalRestAPI: (ln: LightningApi) => HistoricalRestAPI = lightn
       let response: string
       const fullPath = baseURL + path
       try {
+        debug('Sending GET request to %O', fullPath)
         response = await request.get(baseURL + path)
         debug(`Raw response from ${fullPath}: ${response}`)
       } catch (error) {
-        debug(`Could not connect to API at ${fullPath}! ${error}`)
+        debug(`Could not connect to API at ${fullPath}! %O`, error)
         throw error
       }
       const encrypted = RestValidate.data(JSON.parse(response), RawHistoricalResponse)

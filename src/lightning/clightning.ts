@@ -47,11 +47,12 @@ class CLightningImpl implements LightningApi {
     return this.client
       .pay(invoice)
       .then(res => {
+        debug(`Result of paying invoice ${invoice.slice(0, 10)}: %O`, res)
         this.preimages[invoice] = res.payment_preimage
         return res
       })
       .catch((err: Error) => {
-        debug(`Error: ${JSON.stringify(err)}`)
+        debug(`Error: when paying invoice: %O`, err)
         throw err
       })
   }

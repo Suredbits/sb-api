@@ -67,7 +67,9 @@ class EclairImpl implements LightningApi {
           reject(`Payment with uuid ${uuid} timed out after ${timeout} millis`)
         } else {
           // when requesting with UUID always returns a 1-tuple
-          const [result] = await this.sendRpcReq('getsentinfo', ['id', uuid])
+          const rawResult = await this.sendRpcReq('getsentinfo', ['id', uuid])
+          debug(`Result of calling 'getsentinfo' on uuid ${uuid}: %O`, rawResult)
+          const [result] = rawResult
           if (result.status === 'FAILED') {
             reject(`Payment with uuid ${uuid} failed`)
           } else if (result.status === 'SUCCEEDED') {
@@ -109,8 +111,12 @@ class EclairImpl implements LightningApi {
       method: 'POST',
       form,
     })
-      .then(res => res)
+      .then(res => {
+        debug(`Received response on ${method}: ${JSON.stringify(res)}`)
+        return res
+      })
       .catch(err => {
+        debug(`Error when calling ${method}: ${err}`)
         throw err
       })
   }
