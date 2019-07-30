@@ -88,11 +88,11 @@ request, pay the accompanying invoice and then use the preimage of the
 invoice to decrypt the received data.
 
 ```typescript
-const lnd = await Lnd()
+const lnd = await Lnd({ macaroonPath: '/home/satoshi/.lnd/data/chain/bitcoin/testnet/admin.macaroon' })
 
 const rest = HistoricalRestAPI(lnd)
 
-const response = await rest.call({ exchange: 'bitstamp', pair: 'BTCUSD', period: 'daily', year: 2018 })
+const response = await rest.call({ exchange: 'bitstamp', pair: 'BTCUSD', period: 'daily', year: 2019 })
 ```
 
 ### Request data from soccket based APIs

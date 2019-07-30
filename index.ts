@@ -19,7 +19,7 @@ async function main() {
     exchange: 'bitstamp',
     pair: 'BTCUSD',
     period: 'daily',
-    year: 2018,
+    year: 2019,
     network: BitcoinNetwork.testnet,
   })
 
