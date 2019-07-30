@@ -63,7 +63,7 @@ const futuresSocket = await Sockets.exchangeSpot(eclair)
 ```typescript
 import { Lnd, Sockets } from 'sb-api'
 
-const lnd = await Lnd()
+const lnd = await Lnd({ macaroonPath: '/home/satoshi/.lnd/data/chain/bitcoin/testnet/admin.macaroon' })
 // You then pass lnd into the appropriate socket/REST API you're interested in.
 ```
 
