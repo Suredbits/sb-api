@@ -17,9 +17,6 @@ import { NflTypes } from './nfl'
 
 const debug = makeDebug('sb-api:validation')
 
-export type SeasonPhase = 'Preseason' | 'Regular' | 'Postseason'
-export type StatType = 'passing' | 'rushing' | 'receiving' | 'defense'
-
 /** Result of validating socket data */
 interface ValidateDataResult {
   uuid: string
@@ -48,7 +45,7 @@ export class DataValidationError extends Error {
   }
 }
 
-const validate = <T>(data: any[] | object, type: t.Type<T>, onError: OnError): t.TypeOf<typeof type> => {
+const validate = <T, O = T>(data: any[] | object, type: t.Type<T, O>, onError: OnError): t.TypeOf<typeof type> => {
   if (Array.isArray(data)) {
     debug(`Validating %O $`, data.slice(0, 3))
     if (data.length > 3) {
@@ -123,7 +120,7 @@ export const SocketValidate = {
 }
 
 export const RestValidate = {
-  data: <T>(data: object, type: t.Type<T, any, any>): T =>
+  data: <T, O = T>(data: object, type: t.Type<T, O, any>): T =>
     validate(data, type, err => {
       debug(`Err when validating data: ${err}`)
       throw err

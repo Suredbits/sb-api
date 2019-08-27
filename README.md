@@ -155,14 +155,14 @@ This library uses the [`debug`](https://www.npmjs.com/package/debug) module for 
 - `sb-api:lightning:eclair` - Eclair related functionality
 - `sb-api:lightning:clightning` - `c-lightning` related functionality
 - `sb-api:socket:base` - functionality common for all sockets
-- `sb-api:socket:ppc` - functionality common for pay-per-call sockets (NBA & NFL)
+- `sb-api:socket:ppc` - functionality common for pay-per-call sockets (NBA)
 - `sb-api:socket:exchange` - crypto market data logging
 - `sb-api:validation` - logs the validation of incoming data from the API
 - `sb-api:rest` - logs queries and responses to the Suredbits REST APIs
 
 To activate logging output for a given namespace you need to set the `DEBUG` environment variable. Namespaces are hierarchically organized with `:` as the level separator. It's possible to specify multiple namespaces by comma-separating them. `DEBUG=sb-api:*` causes all namespaces to get logged. Setting `DEBUG` to `sb-api:socket:*` activates the `sb-api:socket:base`, `sb-api:socket:ppc` and `sb-api:socket:exchange` namespaces.
 
-`DEBUG=sb-api:lightning:*,sb-api:socket:base,sb-api:socket:ppc` would enable logging of all Lightning activity, the functionality common for all sockets and the functionality common for pay-per-call sockets (NBA & NFL).
+`DEBUG=sb-api:lightning:*,sb-api:socket:base,sb-api:socket:ppc` would enable logging of all Lightning activity, the functionality common for all sockets and the functionality common for pay-per-call sockets (NBA).
 
 ## Publishing
 
