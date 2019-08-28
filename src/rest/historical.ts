@@ -18,14 +18,14 @@ const DecryptedHistoricalResponse = t.array(
   })
 )
 
-type DecryptedHistoricalResponse = t.TypeOf<typeof DecryptedHistoricalResponse>
+export type DecryptedHistoricalResponse = t.TypeOf<typeof DecryptedHistoricalResponse>
 
 interface HistoricalRestAPIArgs<E extends Exchange> {
   exchange: E
   pair: ExchangeSymbols<E>
   year: HistoricalRestAPIYear
   period: HistoricalRestAPIPeriod
-  network: BitcoinNetwork
+  network?: BitcoinNetwork
 }
 
 interface HistoricalRestAPI {
@@ -34,14 +34,15 @@ interface HistoricalRestAPI {
 
 export const HistoricalRestAPI: (ln: LightningApi) => HistoricalRestAPI = lightning => {
   return {
-    call: async ({ exchange, pair, year, period, network }) => {
+    call: async ({ exchange, pair, year, period, network = 'mainnet' }) => {
       let baseURL: string
       if (network === BitcoinNetwork.mainnet) {
         baseURL = 'https://api.suredbits.com/historical/v0'
       } else {
         baseURL = 'https://test.api.suredbits.com/historical/v0'
       }
-      const path = '/' + [exchange, pair, year, period].join('/')
+      const elements = [exchange, pair, year, period]
+      const path = '/' + elements.join('/')
       const fullPath = baseURL + path
 
       return makeRestRequest(lightning, fullPath, DecryptedHistoricalResponse)

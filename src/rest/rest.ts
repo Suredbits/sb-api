@@ -14,8 +14,10 @@ type EncryptedRestResponse = t.TypeOf<typeof EncryptedRestResponse>
 const debug = makeDebug('sb-api:rest')
 export const makeRestRequest = async <T, O = T>(ln: LightningApi, path: string, type: t.Type<T, O>): Promise<T> => {
   debug(`Sending GET request to %O`, path)
-  const response = await request.get(path).catch(err => {
-    debug(`Error when connecting to API at ${path}: %O`, err)
+  const uuidFromEnv = process.env.MAGIC_UUID
+  const pathWithUUID = uuidFromEnv ? path + `?uuid=${encodeURIComponent(uuidFromEnv)}` : path
+  const response = await request.get(pathWithUUID).catch(err => {
+    debug(`Error when connecting to API at ${path}: %s`, err)
     throw err
   })
 
@@ -24,9 +26,39 @@ export const makeRestRequest = async <T, O = T>(ln: LightningApi, path: string, 
   await ln.send(encrypted.invoice)
 
   const preimage = await ln.getPreimage(encrypted.invoice)
-  const decrypted = decrypt(encrypted.encryptedData, preimage)
+  let decrypted: string
+  try {
+    decrypted = decrypt(encrypted.encryptedData, preimage)
+  } catch (err) {
+    const oldDebugValue = debug.enabled
+    if (process.env.NODE_ENV === 'test') {
+      debug.enabled = true
+    }
 
-  const validated = RestValidate.data(JSON.parse(decrypted), type)
+    debug(`Error when decrypting result of GET ${path}: %O`, err)
+    debug('This happened when decrypting this payload: %O', encrypted.encryptedData)
+
+    debug.enabled = oldDebugValue
+    throw err
+  }
+
+  let parsed: object
+  try {
+    parsed = JSON.parse(decrypted)
+  } catch (err) {
+    const oldDebugValue = debug.enabled
+    if (process.env.NODE_ENV === 'test') {
+      debug.enabled = true
+    }
+
+    debug(`Error when parsing result of GET ${path}: %O`, err)
+    debug('This happened when parsing this text: %O', decrypted)
+
+    debug.enabled = oldDebugValue
+
+    throw err
+  }
+  const validated = RestValidate.data(parsed, type)
 
   return validated
 }

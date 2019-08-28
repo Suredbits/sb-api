@@ -28,7 +28,10 @@ export { Lnd } from './lnd'
 
 export type BitcoinNetwork = typeof BitcoinNetwork[keyof typeof BitcoinNetwork] | never
 
-export const BitcoinNetwork = {
+export const BitcoinNetwork: {
+  testnet: 'testnet'
+  mainnet: 'mainnet'
+} = {
   testnet: 'testnet',
   mainnet: 'mainnet',
-} as const
+} // as const

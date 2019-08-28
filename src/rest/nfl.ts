@@ -40,7 +40,7 @@ interface NflRealtimeGames {
 interface NflHistoricalGames {
   /** Defaults to mainnet */
   network?: BitcoinNetwork
-  realtime: false
+  realtime?: false
   week: number
   year: number
   seasonPhase: SeasonPhase
@@ -83,21 +83,21 @@ export const NflRestAPI = (lightning: LightningApi) => ({
   players: async ({ firstName, lastName, network = 'mainnet' }: NflPlayersRequestArgs) => {
     return makeRestRequest(
       lightning,
-      getBaseURL(network) + `/players/${firstName}/${lastName}`,
+      getBaseURL(network) + `/players/${lastName}/${firstName}`,
       NflTypes.PlayersResponseType
     )
   },
   roster: async ({ teamId, year, network = 'mainnet' }: NflTeamRequestArgs) => {
     return makeRestRequest(
       lightning,
-      getBaseURL(network) + '/team/' + [teamId, 'retrieve', year].filter(f => f !== undefined).join('/'),
+      getBaseURL(network) + '/team/' + [teamId, 'roster', year].filter(f => f !== undefined).join('/'),
       NflTypes.TeamRosterResponseType
     )
   },
   schedule: async ({ teamId, year, network = 'mainnet' }: NflTeamRequestArgs) => {
     return makeRestRequest(
       lightning,
-      getBaseURL(network) + '/team' + [teamId, 'roster', year].filter(f => f !== undefined).join('/'),
+      getBaseURL(network) + '/team/' + [teamId, 'schedule', year].filter(f => f !== undefined).join('/'),
       NflTypes.TeamScheduleResponseType
     )
   },
@@ -139,7 +139,7 @@ export const NflRestAPI = (lightning: LightningApi) => ({
     year,
     network = 'mainnet',
   }: NflStatsByNameWeekRequestArgs<S>): Promise<NflStatsResponse<S>> => {
-    const args = ['/stats', statType, year, week, seasonPhase, firstName, lastName]
+    const args = ['/stats', statType, year, week, seasonPhase, lastName, firstName]
 
     // to make the compiler happy we have to execute each branch of `statType` separately
     // otherwise we won't be able to call `makeRestRequest` with a union type

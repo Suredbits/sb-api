@@ -8,7 +8,6 @@ import { MessageTypes, WelcomeMessageType } from '../types'
 export type OnWsOpen = (msg: WelcomeMessageType) => any
 
 export enum API {
-  NFL = 'nfl',
   NBA = 'nba',
   spot = 'spot',
   futures = 'futures',
@@ -52,9 +51,7 @@ export abstract class SbWebSocket {
 
   private getApiUrl(): string {
     const prefix = `wss://${this.network === BitcoinNetwork.testnet ? 'test.' : ''}api.suredbits.com`
-    if (this.api === API.NFL) {
-      return prefix + '/nfl/v0'
-    } else if (this.api === API.NBA) {
+    if (this.api === API.NBA) {
       return prefix + '/nba/v0'
     } else if (this.api === API.spot) {
       return prefix + '/exchange/v0'
