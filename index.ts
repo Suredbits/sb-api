@@ -1,3 +1,5 @@
+// tslint:disable: no-console
+
 import makeDebug from 'debug'
 
 const debug = makeDebug('sb-api')
@@ -11,19 +13,19 @@ debug('IF THIS GOT INCLUDED IN THE PUBLISHED LIBRARY, SOMETHING BAD HAPPENED')
 debug('=====================================================================')
 
 async function main() {
-  const eclair = await Eclair({ rpcPass: '%foobar$' })
-
+  const eclair = await Eclair({ rpcPass: 'abc123' })
   const rest = HistoricalRestAPI(eclair)
-
   const response = await rest.call({
-    exchange: 'bitstamp',
-    pair: 'BTCUSD',
+    exchange: 'kraken',
+    pair: 'ETHUSD',
     period: 'daily',
-    year: 2018,
-    network: BitcoinNetwork.testnet,
+    year: 2019,
+    network: BitcoinNetwork.mainnet,
   })
-
   console.log('response', response)
 }
 
-main()
+main().catch(err => {
+  console.error(`Error: ${err}`)
+  process.exit(1)
+})

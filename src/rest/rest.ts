@@ -22,6 +22,7 @@ export const makeRestRequest = async <T, O = T>(ln: LightningApi, path: string, 
   })
 
   const encrypted = RestValidate.data(JSON.parse(response), EncryptedRestResponse)
+  debug('Received response: %O', encrypted)
 
   await ln.send(encrypted.invoice)
 
