@@ -41,6 +41,7 @@ export const HistoricalRestAPI: (ln: LightningApi) => HistoricalRestAPI = lightn
       } else {
         baseURL = 'https://test.api.suredbits.com/historical/v0'
       }
+      baseURL = 'http://localhost:8072/historical/v0'
       const elements = [exchange, pair, year, period]
       const path = '/' + elements.join('/')
       const fullPath = baseURL + path

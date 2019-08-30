@@ -1,6 +1,6 @@
 {
   "name": "sb-api",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "JS client library for Suredbits APIs",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -19,7 +19,7 @@
     "lib/**/*"
   ],
   "scripts": {
-    "dev": "env DEBUG='sb-api:lightning:*,sb-api:rest:*' npx ts-node -T index.ts",
+    "dev": "env DEBUG='sb-api:lightning:*,sb-api:rest:*,sb-api:rest' npx ts-node -T index.ts",
     "build": "tsc",
     "clean": "rimraf lib",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
