@@ -7,4 +7,5 @@ export const MockLnClient: LightningApi = {
   getInfo: () => Promise.resolve(),
   receive: () => Promise.resolve(SAMPLE_LN_INVOICE),
   send: () => Promise.resolve(),
+  getPreimage: () => Promise.resolve(process.env.MAGIC_PREIMAGE!),
 }

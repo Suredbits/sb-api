@@ -8,12 +8,8 @@ import CryptoJS from 'crypto-js'
  * @return {CryptoJS.WordArray}
  */
 function trimWordArray(words: CryptoJS.WordArray): CryptoJS.WordArray {
-  const hex = words.toString(CryptoJS.enc.Hex)
-
-  const lastNonZero = hex.length - [...hex.split('')].reverse().findIndex(char => char !== '0')
-
-  const trimmedHex = hex.slice(0, lastNonZero === 0 ? undefined : lastNonZero)
-  return CryptoJS.enc.Hex.parse(trimmedHex)
+  ;(words as any).clamp()
+  return words
 }
 
 /**
@@ -24,11 +20,13 @@ function trimWordArray(words: CryptoJS.WordArray): CryptoJS.WordArray {
  */
 function deserializeEncrypted(encrypted: string): [CryptoJS.WordArray, CryptoJS.WordArray] {
   const deserialized = CryptoJS.enc.Base64.parse(encrypted)
-  const deserializedIV = CryptoJS.lib.WordArray.create(
-    deserialized.words.slice(0, 4) // each word is 4 bytes
+  const hex: string = deserialized.toString(CryptoJS.enc.Hex)
+
+  const deserializedIV = CryptoJS.enc.Hex.parse(
+    hex.slice(0, 32) // first 16 bytes are IV
   )
 
-  const deserializedCipherText = CryptoJS.lib.WordArray.create(deserialized.words.slice(4))
+  const deserializedCipherText = CryptoJS.enc.Hex.parse(hex.slice(32)) // rest is cipher text
 
   return [trimWordArray(deserializedCipherText as any), deserializedIV as any]
 }

@@ -16,11 +16,13 @@ You're also welcome to join our [Slack](https://join.slack.com/t/suredbits/share
     - [Eclair](#eclair)
     - [LND](#lnd)
     - [`c-lightning`](#c-lightning)
-  - [Request data from historical REST APIs](#request-data-from-historical-rest-apis)
-  - [Request data from soccket based APIs](#request-data-from-soccket-based-apis)
+  - [Request data from REST APIs](#request-data-from-rest-apis)
+  - [Request data from socket based APIs](#request-data-from-socket-based-apis)
   - [Types](#types)
 - [Debug logging](#debug-logging)
+- [Utilities](#utilities)
 - [Publishing](#publishing)
+- [Testing](#testing)
 
 ## Add it to your project:
 
@@ -79,7 +81,7 @@ const client = await CLightning()
 
 See [`doc/ln-clients.md`](doc/ln-clients.md) for more information on how to use your favorite LN implementation, and what the available options are.
 
-### Request data from historical REST APIs
+### Request data from REST APIs
 
 We provide REST APIs for data that are not realtime-based (such as
 historical market data). These functions are regular promises
@@ -90,12 +92,24 @@ invoice to decrypt the received data.
 ```typescript
 const lnd = await Lnd()
 
-const rest = HistoricalRestAPI(lnd)
+const historicalRest = HistoricalRestAPI(lnd)
 
-const response = await rest.call({ exchange: 'bitstamp', pair: 'BTCUSD', period: 'daily', year: 2018 })
+const historicalResponse = await historicalRest.call({
+  exchange: 'bitstamp',
+  pair: 'BTCUSD',
+  period: 'daily',
+  year: 2018,
+})
+
+const nflRest = NflRestAPI(lnd)
+
+const nflResponse = await nflRest.players({
+  firstName: 'Colin',
+  lastName: 'Kaepernick',
+})
 ```
 
-### Request data from soccket based APIs
+### Request data from socket based APIs
 
 We provide streaming realtime data over WebSockets. These APIs require you
 to specify callbacks (functions) that gets executed whenever certain events
@@ -134,9 +148,6 @@ futures.trades({
   duration: 20000,
 })
 
-const nflSocket = await Sockets.nflTestnet()
-const cleRoster = await nflSocket.roster({ teamId: 'CLE' })
-
 const nbaSocket = await Sockets.nbaTestnet()
 const dalRoster = await nbaSocket.roster({ teamId: 'DAL' })
 ```
@@ -164,6 +175,12 @@ To activate logging output for a given namespace you need to set the `DEBUG` env
 
 `DEBUG=sb-api:lightning:*,sb-api:socket:base,sb-api:socket:ppc` would enable logging of all Lightning activity, the functionality common for all sockets and the functionality common for pay-per-call sockets (NBA).
 
+## Utilities
+
+The script `decrypt.ts` is provided as a utility script for decrypting payloads adhering
+to the PAID standard.
+Usage: `npx ts-node -T decrypt.ts $encrypted_payload $invoice_preimage`.
+
 ## Publishing
 
 ```
@@ -171,3 +188,11 @@ $ yarn publish
 ```
 
 Lints, checks formatting, makes new git tag, pushes new git tag, build, pushes build to npm
+
+## Testing
+
+When testing this library, you need two secret environment variables, `MAGIC_UUID` and `MAGIC_PREIMAGE`. After that, simply do:
+
+```bash
+$ env MAGIC_UUID=... MAGIC_PREIMAGE=... yarn test --your --options --to --jest --here
+```

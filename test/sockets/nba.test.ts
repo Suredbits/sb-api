@@ -29,7 +29,7 @@ describe('NBA API socket', async () => {
   })
 
   it('should get schedules', async () => {
-    const schedules = await nbaSocket.schedule({ teamId: 'MIN' })
+    const schedules = await nbaSocket.schedule({ teamId: 'MIN', season: '2017-2018' })
     expect(schedules.length).toBeGreaterThan(0)
   })
 
